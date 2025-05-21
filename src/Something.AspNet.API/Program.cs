@@ -1,17 +1,15 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Something.AspNet.API.BackgroundServices;
 using Something.AspNet.API.ExceptionHandlers;
 using Something.AspNet.API.Options;
 using Something.AspNet.API.Options.Configurations;
 using Something.AspNet.API.Requests;
-using Something.AspNet.API.Services;
-using Something.AspNet.API.Services.Interfaces;
-using Something.AspNet.API.Services.Validators;
+using Something.AspNet.API.Services.Auth;
+using Something.AspNet.API.Services.Auth.Interfaces;
+using Something.AspNet.API.Services.Auth.Validators;
 using Something.AspNet.Database.Extensions;
 using Something.AspNet.Database.Models;
 
@@ -34,6 +32,8 @@ internal static class Program
             })
             .AddJwtBearer();
 
+        builder.Services.AddAuthorization();
+
         builder.Services.AddOptions<JwtOptions>().BindConfiguration(nameof(JwtOptions));
         builder.Services.ConfigureOptions<ConfigureJwtBearerOptions>();
 
@@ -48,6 +48,9 @@ internal static class Program
         builder.Services.AddHostedService<DatabaseMigrationBackgroundService>();
 
         builder.Services.AddTransient<IValidator<RegisterRequest>, RegisterRequestValidator>();
+
+        builder.Services.AddScoped<IAccessTokenManagementService, AccessTokenManagementService>();
+        builder.Services.AddScoped<IRefreshTokenManagementService, RefreshTokenManagementService>();
 
         var app = builder.Build();
 

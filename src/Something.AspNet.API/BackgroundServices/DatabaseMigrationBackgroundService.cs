@@ -1,25 +1,24 @@
 ﻿
 using Something.AspNet.Database;
 
-namespace Something.AspNet.API.BackgroundServices
+namespace Something.AspNet.API.BackgroundServices;
+
+internal class DatabaseMigrationBackgroundService(
+    IServiceScopeFactory scopeFactory) : IHostedService
 {
-    internal class DatabaseMigrationBackgroundService(
-        IServiceScopeFactory scopeFactory) : IHostedService
+    private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
+
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
+        using IServiceScope createdScope = _scopeFactory.CreateScope();
 
-        public async Task StartAsync(CancellationToken cancellationToken)
-        {
-            using IServiceScope createdScope = _scopeFactory.CreateScope();
+        var dbContext = createdScope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
 
-            var dbContext = createdScope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        await dbContext.MigrateDatabaseAsync(cancellationToken);
+    }
 
-            await dbContext.MigrateDatabaseAsync(cancellationToken);
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
     }
 }

@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Something.AspNet.Database.Options;
 
-namespace Something.AspNet.Database.Options
+public class DatabaseOptions
 {
-    public class DatabaseOptions
-    {
-        public string ConnectionString { get; set; } = string.Empty;
-    }
+    public string ConnectionString { get; set; } = string.Empty;
 }

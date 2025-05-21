@@ -4,42 +4,41 @@ using Microsoft.IdentityModel.Tokens;
 using Something.AspNet.API.Constants;
 using System.Text;
 
-namespace Something.AspNet.API.Options.Configurations
+namespace Something.AspNet.API.Options.Configurations;
+
+internal class ConfigureJwtBearerOptions(IOptions<JwtOptions> jwtOptions) : IConfigureNamedOptions<JwtBearerOptions>
 {
-    internal class ConfigureJwtBearerOptions(IOptions<JwtOptions> jwtOptions) : IConfigureNamedOptions<JwtBearerOptions>
+    private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+
+    public void Configure(string? name, JwtBearerOptions options)
     {
-        private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+        Configure(options);
+    }
 
-        public void Configure(string? name, JwtBearerOptions options)
+    public void Configure(JwtBearerOptions options)
+    {
+        options.TokenValidationParameters = new TokenValidationParameters()
         {
-            Configure(options);
-        }
+            ValidateLifetime = true,
+            ValidateAudience = true,
+            ValidateIssuer = true,
+            ValidateIssuerSigningKey = true,
 
-        public void Configure(JwtBearerOptions options)
+            ValidAudience = _jwtOptions.Audience,
+            ValidIssuer = _jwtOptions.Issuer,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.AccessTokenKey)),
+
+            ClockSkew = TimeSpan.FromSeconds(0)
+        };
+
+        options.Events = new JwtBearerEvents()
         {
-            options.TokenValidationParameters = new TokenValidationParameters()
+            OnMessageReceived = context =>
             {
-                ValidateLifetime = true,
-                ValidateAudience = true,
-                ValidateIssuer = true,
-                ValidateIssuerSigningKey = true,
+                context.Token = context.Request.Cookies[CookieNames.ACCESS_TOKEN];
 
-                ValidAudience = _jwtOptions.Audience,
-                ValidIssuer = _jwtOptions.Issuer,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.AccessTokenKey)),
-
-                ClockSkew = TimeSpan.FromSeconds(0)
-            };
-
-            options.Events = new JwtBearerEvents()
-            {
-                OnMessageReceived = context =>
-                {
-                    context.Token = context.Request.Cookies[CookieNames.ACCESS_TOKEN];
-
-                    return Task.CompletedTask;
-                }
-            };
-        }
+                return Task.CompletedTask;
+            }
+        };
     }
 }

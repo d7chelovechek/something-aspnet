@@ -2,17 +2,16 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Something.AspNet.API.Controllers
+namespace Something.AspNet.API.Controllers;
+
+[ApiController]
+[Route("data")]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+public class DataController : ControllerBase
 {
-    [ApiController]
-    [Route("data")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public class DataController : ControllerBase
+    [HttpGet("values")]
+    public IEnumerable<int> GetValues()
     {
-        [HttpGet("values")]
-        public IEnumerable<int> GetValues()
-        {
-            return Enumerable.Range(0, 10);
-        }
+        return Enumerable.Range(0, 10);
     }
 }

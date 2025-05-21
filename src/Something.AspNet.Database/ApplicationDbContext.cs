@@ -5,51 +5,50 @@ using Something.AspNet.Database.Models;
 using Something.AspNet.Database.Models.Configurations;
 using Something.AspNet.Database.Options;
 
-namespace Something.AspNet.Database
+namespace Something.AspNet.Database;
+
+internal class ApplicationDbContext : DbContext, IApplicationDbContext
 {
-    internal class ApplicationDbContext : DbContext, IApplicationDbContext
+    public DbSet<User> Users { get; set; }
+
+    public DbSet<Session> Sessions { get; set; }
+
+    private readonly DatabaseOptions _databaseOptions;
+
+    public ApplicationDbContext(
+        IOptions<DatabaseOptions> databaseOptions,
+        DbContextOptions<ApplicationDbContext> options) : base(options)
     {
-        public DbSet<User> Users { get; set; }
+        _databaseOptions = databaseOptions.Value;
+        
+        ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+        ChangeTracker.AutoDetectChangesEnabled = false;
+    }
 
-        public DbSet<Session> Sessions { get; set; }
+    public Task MigrateDatabaseAsync(CancellationToken cancellationToken)
+    {
+        return Database.MigrateAsync(cancellationToken);
+    }
 
-        private readonly DatabaseOptions _databaseOptions;
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
 
-        public ApplicationDbContext(
-            IOptions<DatabaseOptions> databaseOptions,
-            DbContextOptions<ApplicationDbContext> options) : base(options)
+        if (_databaseOptions is not null)
         {
-            _databaseOptions = databaseOptions.Value;
-            
-            ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-            ChangeTracker.AutoDetectChangesEnabled = false;
+            optionsBuilder.UseSqlServer(_databaseOptions.ConnectionString);
         }
 
-        public Task MigrateDatabaseAsync(CancellationToken cancellationToken)
+        optionsBuilder.ConfigureWarnings(w =>
         {
-            return Database.MigrateAsync(cancellationToken);
-        }
+            w.Ignore(SqlServerEventId.SavepointsDisabledBecauseOfMARS);
+            w.Ignore(CoreEventId.RowLimitingOperationWithoutOrderByWarning);
+        });
+    }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            base.OnConfiguring(optionsBuilder);
-
-            if (_databaseOptions is not null)
-            {
-                optionsBuilder.UseSqlServer(_databaseOptions.ConnectionString);
-            }
-
-            optionsBuilder.ConfigureWarnings(w =>
-            {
-                w.Ignore(SqlServerEventId.SavepointsDisabledBecauseOfMARS);
-                w.Ignore(CoreEventId.RowLimitingOperationWithoutOrderByWarning);
-            });
-        }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.ApplyConfiguration(new UserConfiguration());
-            modelBuilder.ApplyConfiguration(new SessionConfiguration());
-        }
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfiguration(new UserConfiguration());
+        modelBuilder.ApplyConfiguration(new SessionConfiguration());
     }
 }
