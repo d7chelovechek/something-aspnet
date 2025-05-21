@@ -1,0 +1,6 @@
+[Bb]in/
+[Oo]bj/
+/.vs
+/src/TakeTheCream.Trading.Bot/Properties/launchSettings.json
+/.env
+/appsettings.production.json
