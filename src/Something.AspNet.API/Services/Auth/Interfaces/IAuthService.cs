@@ -9,6 +9,10 @@ public interface IAuthService
         LoginRequest request,
         CancellationToken cancellationToken);
 
+    public Task LogoutAsync(
+        string accessToken,
+        CancellationToken cancellationToken);
+
     public Task RegisterAsync(
         RegisterRequest request,
         CancellationToken cancellationToken);

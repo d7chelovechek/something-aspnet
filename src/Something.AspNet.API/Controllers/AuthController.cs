@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Something.AspNet.API.Constants;
 using Something.AspNet.API.Requests;
 using Something.AspNet.API.Responses;
@@ -6,12 +7,14 @@ using Something.AspNet.API.Services.Auth.Interfaces;
 
 namespace Something.AspNet.API.Controllers;
 
-[ApiController, Route("auth")]
+[ApiController]
+[Route("auth")]
 public class AuthController(IAuthService authService) : ControllerBase
 {
     private readonly IAuthService _authService = authService;
 
     [HttpPost("register")]
+    [AllowAnonymous]
     public async Task<IActionResult> RegisterAsync(
         RegisterRequest request,
         CancellationToken cancellationToken)
@@ -22,6 +25,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
 
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> LoginAsync(
         LoginRequest request,
         CancellationToken cancellationToken)
@@ -30,6 +34,21 @@ public class AuthController(IAuthService authService) : ControllerBase
 
         AppendTokenCookie(CookieNames.ACCESS_TOKEN, response.AccessToken);
         AppendTokenCookie(CookieNames.REFRESH_TOKEN, response.RefreshToken);
+
+        return Ok();
+    }
+
+    [HttpPost("logout")]
+    [Authorize]
+    public async Task<IActionResult> LogoutAsync(
+        CancellationToken cancellationToken)
+    {
+        var accessToken = Request.Cookies[CookieNames.ACCESS_TOKEN];
+
+        Response.Cookies.Delete(CookieNames.ACCESS_TOKEN);
+        Response.Cookies.Delete(CookieNames.REFRESH_TOKEN);
+
+        await _authService.LogoutAsync(accessToken!, cancellationToken);
 
         return Ok();
     }

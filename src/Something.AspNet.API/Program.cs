@@ -46,6 +46,7 @@ internal static class Program
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
         builder.Services.AddHostedService<DatabaseMigrationBackgroundService>();
+        builder.Services.AddHostedService<DeleteExpiredSessionsBackgroundService>();
 
         builder.Services.AddTransient<IValidator<RegisterRequest>, RegisterRequestValidator>();
 
