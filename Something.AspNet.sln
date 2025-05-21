@@ -5,6 +5,10 @@ VisualStudioVersion = 17.14.36109.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Something.AspNet.API", "src\Something.AspNet.API\Something.AspNet.API.csproj", "{08FE0C33-9E8C-40D1-9A05-BC5129BD8A83}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Something.AspNet.Database", "src\Something.AspNet.Database\Something.AspNet.Database.csproj", "{7293E69C-F548-43B9-BB73-D7B2E186BE84}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,9 +19,17 @@ Global
 		{08FE0C33-9E8C-40D1-9A05-BC5129BD8A83}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08FE0C33-9E8C-40D1-9A05-BC5129BD8A83}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08FE0C33-9E8C-40D1-9A05-BC5129BD8A83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7293E69C-F548-43B9-BB73-D7B2E186BE84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7293E69C-F548-43B9-BB73-D7B2E186BE84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7293E69C-F548-43B9-BB73-D7B2E186BE84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7293E69C-F548-43B9-BB73-D7B2E186BE84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{08FE0C33-9E8C-40D1-9A05-BC5129BD8A83} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{7293E69C-F548-43B9-BB73-D7B2E186BE84} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {49738579-AEB6-430A-90C7-34A3F674AFD9}
