@@ -36,7 +36,7 @@ internal static class Program
         builder.Services.AddOptions<JwtOptions>().BindConfiguration(nameof(JwtOptions));
 
         builder.Services.AddDatabase();
-        builder.Services.AddScoped<IIdentityService, IdentityService>();
+        builder.Services.AddScoped<IUsersService, UsersService>();
         builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
     
         builder.Services.AddOpenApi();

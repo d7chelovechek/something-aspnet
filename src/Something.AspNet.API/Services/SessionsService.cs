@@ -1,16 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Something.AspNet.API.Cache.Interfaces;
+using Something.AspNet.API.Exceptions;
+using Something.AspNet.API.Extensions;
 using Something.AspNet.API.Options;
+using Something.AspNet.API.Requests;
+using Something.AspNet.API.Responses;
 using Something.AspNet.API.Services.Interfaces;
 using Something.AspNet.Database;
 using Something.AspNet.Database.Models;
+using System.Security.Claims;
 
 namespace Something.AspNet.API.Services;
 
 internal class SessionsService(
     IOptions<JwtOptions> jwtOptions,
     IApplicationDbContext dbContext,
+    IAccessTokenService accessTokenService,
+    IRefreshTokenService refreshTokenService,
     ISessionsCache sessionsCache,
     TimeProvider timeProvider)
     : ISessionsService
@@ -19,8 +26,12 @@ internal class SessionsService(
     private readonly IApplicationDbContext _dbContext = dbContext;
     private readonly ISessionsCache _sessionsCache = sessionsCache;
     private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly IAccessTokenService _accessTokenService = accessTokenService;
+    private readonly IRefreshTokenService _refreshTokenService = refreshTokenService;
 
-    public async Task<Session> CreateAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<CreatedSessionResponse> CreateAsync(
+        Guid userId, 
+        CancellationToken cancellationToken)
     {
         var now = _timeProvider.GetUtcNow();
 
@@ -36,7 +47,10 @@ internal class SessionsService(
 
         await UpdateAsync(session, cancellationToken);
 
-        return session;
+        return new CreatedSessionResponse(
+            _accessTokenService.CreateToken(session),
+            _refreshTokenService.CreateToken(session),
+            session.AccessTokenExpiresAt.ToUnixTimeSeconds());
     }
 
     public async Task<bool> IsValidAsync(Guid sessionId, CancellationToken cancellationToken)
@@ -60,29 +74,34 @@ internal class SessionsService(
                 .AddMinutes(_jwtOptions.AccessTokenLifetimeInMinutes));
     }
 
-    public async Task UpdateAsync(Session session, CancellationToken cancellationToken)
+    public async Task<RefreshedSessionResponse> RefreshAsync(
+        RefreshSessionRequest request,
+        CancellationToken cancellationToken)
     {
-        _dbContext.Sessions.Update(session);
-        var saveTask = _dbContext.SaveChangesAsync(cancellationToken);
+        if (_refreshTokenService.ValidateToken(request.RefreshToken)
+                is not ClaimsPrincipal principal)
+        {
+            throw new TokenInvalidException();
+        }
 
-        _sessionsCache.Update(session.Id, true, session.AccessTokenExpiresAt);
+        Session? session =
+            await _dbContext.Sessions.SingleOrDefaultAsync(
+                s => s.Id.Equals(principal.GetSessionId()),
+                cancellationToken)
+            ?? throw new SessionExpiredException();
 
-        await saveTask;
-    }
+        if (_timeProvider.GetUtcNow() > session.SessionExpiresAt)
+        {
+            await RemoveAsync(session.Id, cancellationToken);
 
-    public async Task RemoveAsync(Guid sessionId, CancellationToken cancellationToken)
-    {
-        var deleteTask = _dbContext.Sessions
-            .Where(s => s.Id.Equals(sessionId))
-            .ExecuteDeleteAsync(cancellationToken);
+            throw new SessionExpiredException();
+        }
 
-        _sessionsCache.Remove(sessionId);
+        if (!session.JwtId.Equals(principal.GetJwtId()))
+        {
+            throw new TokenInvalidException();
+        }
 
-        await deleteTask;
-    }
-
-    public async Task RefreshAsync(Session session, CancellationToken cancellationToken)
-    {
         var now = _timeProvider.GetUtcNow();
 
         session.JwtId = Guid.NewGuid();
@@ -91,5 +110,27 @@ internal class SessionsService(
         session.RefreshTokenExpiresAt = now.AddMinutes(_jwtOptions.RefreshTokenLifetimeInMinutes);
 
         await UpdateAsync(session, cancellationToken);
+
+        return new RefreshedSessionResponse(
+            _accessTokenService.CreateToken(session),
+            _refreshTokenService.CreateToken(session),
+            session.AccessTokenExpiresAt.ToUnixTimeSeconds());
+    }
+
+    public async Task RemoveAsync(Guid sessionId, CancellationToken cancellationToken)
+    {
+        await _dbContext.Sessions
+            .Where(s => s.Id.Equals(sessionId))
+            .ExecuteDeleteAsync(cancellationToken);
+
+        _sessionsCache.Remove(sessionId);
+    }
+
+    public async Task UpdateAsync(Session session, CancellationToken cancellationToken)
+    {
+        _dbContext.Sessions.Update(session);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _sessionsCache.Update(session.Id, true, session.AccessTokenExpiresAt);
     }
 }

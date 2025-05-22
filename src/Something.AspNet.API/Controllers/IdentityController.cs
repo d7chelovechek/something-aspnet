@@ -7,50 +7,50 @@ namespace Something.AspNet.API.Controllers;
 
 [ApiController]
 [Route("identity")]
-public class IdentityController(IIdentityService identityService) : ControllerBase
+public class IdentityController(
+    IUsersService userService,
+    ISessionsService sessionsService) : ControllerBase
 {
-    private readonly IIdentityService _identityService = identityService;
+    private readonly IUsersService _userService = userService;
+    private readonly ISessionsService _sessionsService = sessionsService;
 
     [HttpPost("register")]
-    public async Task<IActionResult> RegisterAsync(
+    public async Task<IActionResult> RegisterUserAsync(
         RegisterRequest request,
         CancellationToken cancellationToken)
     {
-        await _identityService.RegisterAsync(request, cancellationToken);
+        await _userService.RegisterAsync(request, cancellationToken);
 
         return Created();
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> LoginAsync(
+    public async Task<IActionResult> LoginUserAsync(
         LoginRequest request,
         CancellationToken cancellationToken)
     {
-        var response = await _identityService.LoginAsync(request, cancellationToken);
+        var userId = await _userService.LoginAsync(request, cancellationToken);
+        var response = await _sessionsService.CreateAsync(userId, cancellationToken);
 
         return Ok(response);
     }
 
     [HttpPost("logout")]
     [JwtAuthorize]
-    public async Task<IActionResult> LogoutAsync(
+    public async Task<IActionResult> LogoutUserAsync(
         CancellationToken cancellationToken)
     {
-        await _identityService.LogoutAsync(
-            User.GetSessionId(),
-            cancellationToken);
+        await _sessionsService.RemoveAsync(User.GetSessionId(), cancellationToken);
 
         return Ok();
     }
 
     [HttpPost("sessions")]
-    public async Task<IActionResult> RefreshAsync(
-        RefreshRequest request,
+    public async Task<IActionResult> RefreshSessionAsync(
+        RefreshSessionRequest request,
         CancellationToken cancellationToken)
     {
-        var response = await _identityService.RefreshAsync(
-            request, 
-            cancellationToken);
+        var response = await _sessionsService.RefreshAsync(request, cancellationToken);
 
         return Ok(response);
     }

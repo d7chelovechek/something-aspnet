@@ -1,10 +1,14 @@
-﻿using Something.AspNet.Database.Models;
+﻿using Something.AspNet.API.Requests;
+using Something.AspNet.API.Responses;
+using Something.AspNet.Database.Models;
 
 namespace Something.AspNet.API.Services.Interfaces;
 
 public interface ISessionsService
 {
-    public Task<Session> CreateAsync(Guid userId, CancellationToken cancellationToken);
+    public Task<CreatedSessionResponse> CreateAsync(
+        Guid userId, 
+        CancellationToken cancellationToken);
 
     public Task<bool> IsValidAsync(Guid sessionId, CancellationToken cancellationToken);
 
@@ -12,5 +16,7 @@ public interface ISessionsService
 
     public Task RemoveAsync(Guid sessionId, CancellationToken cancellationToken);
 
-    public Task RefreshAsync(Session session, CancellationToken cancellationToken);
+    public Task<RefreshedSessionResponse> RefreshAsync(
+        RefreshSessionRequest request, 
+        CancellationToken cancellationToken);
 }
