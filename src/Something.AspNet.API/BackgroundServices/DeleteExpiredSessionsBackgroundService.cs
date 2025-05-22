@@ -4,23 +4,23 @@ using Something.AspNet.Database;
 namespace Something.AspNet.API.BackgroundServices
 {
     public class DeleteExpiredSessionsBackgroundService(
-        IServiceScopeFactory scopeFactory)
+        IServiceScopeFactory scopeFactory,
+        TimeProvider timeProvider)
         : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var now = DateTime.UtcNow;
-
                 using (IServiceScope scope = _scopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
 
                     await dbContext.Sessions
-                        .Where(s => now > s.ExpiredAt)
+                        .Where(s => _timeProvider.GetUtcNow() > s.ExpiresAt)
                         .ExecuteDeleteAsync(stoppingToken);
                 }
 

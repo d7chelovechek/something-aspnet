@@ -14,7 +14,6 @@ public class AuthController(IAuthService authService) : ControllerBase
     private readonly IAuthService _authService = authService;
 
     [HttpPost("register")]
-    [AllowAnonymous]
     public async Task<IActionResult> RegisterAsync(
         RegisterRequest request,
         CancellationToken cancellationToken)
@@ -25,46 +24,18 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
 
     [HttpPost("login")]
-    [AllowAnonymous]
-    public async Task<IActionResult> LoginAsync(
+    public async Task<LoginResponse> LoginAsync(
         LoginRequest request,
         CancellationToken cancellationToken)
     {
-        var response = await _authService.LoginAsync(request, cancellationToken);
-
-        AppendTokenCookie(CookieNames.ACCESS_TOKEN, response.AccessToken);
-        AppendTokenCookie(CookieNames.REFRESH_TOKEN, response.RefreshToken);
-
-        return Ok();
+        return await _authService.LoginAsync(request, cancellationToken);
     }
 
     [HttpPost("logout")]
-    [Authorize]
+    [JwtAuthorize]
     public async Task<IActionResult> LogoutAsync(
         CancellationToken cancellationToken)
     {
-        var accessToken = Request.Cookies[CookieNames.ACCESS_TOKEN];
-
-        Response.Cookies.Delete(CookieNames.ACCESS_TOKEN);
-        Response.Cookies.Delete(CookieNames.REFRESH_TOKEN);
-
-        await _authService.LogoutAsync(accessToken!, cancellationToken);
-
-        return Ok();
-    }
-
-    private void AppendTokenCookie(string tokenName, TokenResponse response)
-    {
-        Response.Cookies.Append(
-            tokenName,
-            response.Token,
-            new CookieOptions()
-            {
-                HttpOnly = true,
-                IsEssential = true,
-                Secure = true,
-                Expires = response.ExpiredAt,
-                SameSite = SameSiteMode.Strict
-            });
+        return BadRequest();
     }
 }

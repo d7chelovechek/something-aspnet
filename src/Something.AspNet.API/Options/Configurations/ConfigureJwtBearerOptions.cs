@@ -30,15 +30,5 @@ internal class ConfigureJwtBearerOptions(IOptions<JwtOptions> jwtOptions) : ICon
 
             ClockSkew = TimeSpan.FromSeconds(0)
         };
-
-        options.Events = new JwtBearerEvents()
-        {
-            OnMessageReceived = context =>
-            {
-                context.Token = context.Request.Cookies[CookieNames.ACCESS_TOKEN];
-
-                return Task.CompletedTask;
-            }
-        };
     }
 }

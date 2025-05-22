@@ -17,18 +17,18 @@ namespace Something.AspNet.API.Services.Auth;
 internal class AuthService(
     IApplicationDbContext dbContext,
     IPasswordHasher<User> passwordHasher,
-    IOptions<JwtOptions> jwtOptions,
-    IAccessTokenManagementService accessTokenService,
-    IRefreshTokenManagementService refreshTokenService,
+    IAccessTokenService accessTokenService,
+    IRefreshTokenService refreshTokenService,
+    ISessionsService sessionsService,
     IValidator<RegisterRequest> registerValidator)
     : IAuthService
 {
     private readonly IApplicationDbContext _dbContext = dbContext;
     private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
-    private readonly JwtOptions _jwtOptions = jwtOptions.Value;
-    private readonly IAccessTokenManagementService _accessTokenService = accessTokenService;
-    private readonly IRefreshTokenManagementService _refreshTokenService = refreshTokenService;
+    private readonly IAccessTokenService _accessTokenService = accessTokenService;
+    private readonly IRefreshTokenService _refreshTokenService = refreshTokenService;
     private readonly IValidator<RegisterRequest> _registerValidator = registerValidator;
+    private readonly ISessionsService _sessionsService = sessionsService;
 
     public async Task<LoginResponse> LoginAsync(
         LoginRequest request, 
@@ -51,38 +51,21 @@ internal class AuthService(
             throw new CredentialsIncorrectException();
         }
 
-        var now = DateTime.UtcNow;
+        var session = await _sessionsService.CreateAsync(existingUser.Id, cancellationToken);
 
-        var session = new Session()
-        {
-            UserId = existingUser.Id,
-            ExpiredAt = now.AddMinutes(_jwtOptions.SessionLifetime)
-        };
-
-        await _dbContext.Sessions.AddAsync(session, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        var accessToken = _accessTokenService.CreateToken(
-            existingUser.Id, 
-            session.Id, 
-            now);
-
-        var refreshToken = _refreshTokenService.CreateToken(
-            existingUser.Id,
-            session.Id,
-            now);
-
-        return new LoginResponse(accessToken, refreshToken);
+        return new LoginResponse(
+            _accessTokenService.CreateToken(session),
+            _refreshTokenService.CreateToken(session));
     }
 
     public async Task LogoutAsync(string accessToken, CancellationToken cancellationToken)
     {
-        var securityToken = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
-        var claim = securityToken.Claims.Single(c => c.Type is JwtClaimTypes.SessionId);
+        //var securityToken = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+        //var claim = securityToken.Claims.Single(c => c.Type is JwtClaimTypes.SessionId);
 
-        await _dbContext.Sessions
-            .Where(s => s.Id.Equals(Guid.Parse(claim.Value)))
-            .ExecuteDeleteAsync(cancellationToken);
+        //await _dbContext.Sessions
+        //    .Where(s => s.Id.Equals(Guid.Parse(claim.Value)))
+        //    .ExecuteDeleteAsync(cancellationToken);
     }
 
     public async Task RegisterAsync(

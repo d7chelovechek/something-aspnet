@@ -1,7 +1,9 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Scalar.AspNetCore;
+using Something.AspNet.API.AuthenticationHandlers;
 using Something.AspNet.API.BackgroundServices;
 using Something.AspNet.API.ExceptionHandlers;
 using Something.AspNet.API.Options;
@@ -10,6 +12,8 @@ using Something.AspNet.API.Requests;
 using Something.AspNet.API.Services.Auth;
 using Something.AspNet.API.Services.Auth.Interfaces;
 using Something.AspNet.API.Services.Auth.Validators;
+using Something.AspNet.API.Services.Cache;
+using Something.AspNet.API.Services.Cache.Interfaces;
 using Something.AspNet.Database.Extensions;
 using Something.AspNet.Database.Models;
 
@@ -24,13 +28,10 @@ internal static class Program
         builder.Services.AddControllers();
 
         builder.Services
-            .AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer();
+            .AddAuthentication()
+            .AddScheme<AuthenticationSchemeOptions, JwtAuthenticationHandler>(
+                JwtAuthenticationHandler.SCHEME_NAME, 
+                null);
 
         builder.Services.AddAuthorization();
 
@@ -50,8 +51,13 @@ internal static class Program
 
         builder.Services.AddTransient<IValidator<RegisterRequest>, RegisterRequestValidator>();
 
-        builder.Services.AddScoped<IAccessTokenManagementService, AccessTokenManagementService>();
-        builder.Services.AddScoped<IRefreshTokenManagementService, RefreshTokenManagementService>();
+        builder.Services.AddScoped<IAccessTokenService, AccessTokenService>();
+        builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        builder.Services.AddScoped<ISessionsService, SessionsService>();
+        builder.Services.AddScoped<ISessionsCache, SessionsCache>();
+        builder.Services.AddMemoryCache();
+
+        builder.Services.AddSingleton(TimeProvider.System);
 
         var app = builder.Build();
 

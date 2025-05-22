@@ -8,7 +8,7 @@ internal class JwtOptions
     public string Issuer { get; set; } = string.Empty;
     public string Audience { get; set; } = string.Empty;
 
-    public int AccessTokenLifetime { get; set; }
-    public int RefreshTokenLifetime { get; set; }
-    public int SessionLifetime { get; set; }
+    public int AccessTokenLifetimeInMinutes { get; set; }
+    public int RefreshTokenLifetimeInMinutes { get; set; }
+    public int SessionLifetimeInMinutes { get; set; }
 }

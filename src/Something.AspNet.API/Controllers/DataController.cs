@@ -6,7 +6,7 @@ namespace Something.AspNet.API.Controllers;
 
 [ApiController]
 [Route("data")]
-[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+[JwtAuthorize]
 public class DataController : ControllerBase
 {
     [HttpGet("values")]
