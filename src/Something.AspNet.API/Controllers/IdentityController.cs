@@ -12,34 +12,46 @@ public class IdentityController(IIdentityService identityService) : ControllerBa
     private readonly IIdentityService _identityService = identityService;
 
     [HttpPost("register")]
-    public async Task<IResult> RegisterAsync(
+    public async Task<IActionResult> RegisterAsync(
         RegisterRequest request,
         CancellationToken cancellationToken)
     {
         await _identityService.RegisterAsync(request, cancellationToken);
 
-        return Results.Created();
+        return Created();
     }
 
     [HttpPost("login")]
-    public async Task<IResult> LoginAsync(
+    public async Task<IActionResult> LoginAsync(
         LoginRequest request,
         CancellationToken cancellationToken)
     {
         var response = await _identityService.LoginAsync(request, cancellationToken);
 
-        return Results.Ok(response);
+        return Ok(response);
     }
 
     [HttpPost("logout")]
     [JwtAuthorize]
-    public async Task<IResult> LogoutAsync(
+    public async Task<IActionResult> LogoutAsync(
         CancellationToken cancellationToken)
     {
         await _identityService.LogoutAsync(
             User.GetSessionId(),
             cancellationToken);
 
-        return Results.Ok();
+        return Ok();
+    }
+
+    [HttpPost("sessions")]
+    public async Task<IActionResult> RefreshAsync(
+        RefreshRequest request,
+        CancellationToken cancellationToken)
+    {
+        var response = await _identityService.RefreshAsync(
+            request, 
+            cancellationToken);
+
+        return Ok(response);
     }
 }

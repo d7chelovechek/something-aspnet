@@ -51,9 +51,8 @@ internal class JwtAuthenticationHandler(
 
         try
         {
-            bool isValid = await _sessionsService.ValidateAsync(
+            bool isValid = await _sessionsService.IsValidAsync(
                 principal.GetSessionId(),
-                principal.GetExpiresAt(),
                 CancellationToken.None);
 
             if (!isValid)

@@ -39,10 +39,7 @@ internal class SessionsService(
         return session;
     }
 
-    public async Task<bool> ValidateAsync(
-        Guid sessionId,
-        DateTimeOffset expiresAt,
-        CancellationToken cancellationToken)
+    public async Task<bool> IsValidAsync(Guid sessionId, CancellationToken cancellationToken)
     {
         if (_sessionsCache.Get(sessionId) is bool isValid)
         {
@@ -57,7 +54,10 @@ internal class SessionsService(
         return _sessionsCache.Update(
             sessionId, 
             existingSession is not null, 
-            existingSession?.AccessTokenExpiresAt ?? expiresAt);
+            existingSession?.AccessTokenExpiresAt ??
+            _timeProvider
+                .GetUtcNow()
+                .AddMinutes(_jwtOptions.AccessTokenLifetimeInMinutes));
     }
 
     public async Task UpdateAsync(Session session, CancellationToken cancellationToken)
@@ -79,5 +79,17 @@ internal class SessionsService(
         _sessionsCache.Remove(sessionId);
 
         await deleteTask;
+    }
+
+    public async Task RefreshAsync(Session session, CancellationToken cancellationToken)
+    {
+        var now = _timeProvider.GetUtcNow();
+
+        session.JwtId = Guid.NewGuid();
+        session.TokensUpdatedAt = now;
+        session.AccessTokenExpiresAt = now.AddMinutes(_jwtOptions.AccessTokenLifetimeInMinutes);
+        session.RefreshTokenExpiresAt = now.AddMinutes(_jwtOptions.RefreshTokenLifetimeInMinutes);
+
+        await UpdateAsync(session, cancellationToken);
     }
 }

@@ -1,3 +1,3 @@
 ﻿namespace Something.AspNet.API.Responses;
 
-public record LoginResponse(string AccessToken, string RefreshToken);
+public record LoginResponse(string AccessToken, string RefreshToken, long ExpiresAt);

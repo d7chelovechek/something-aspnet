@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Something.AspNet.API.Exceptions;
+using Something.AspNet.API.Extensions;
 using Something.AspNet.API.Requests;
 using Something.AspNet.API.Responses;
 using Something.AspNet.API.Services.Interfaces;
 using Something.AspNet.Database;
 using Something.AspNet.Database.Models;
+using System.Security.Claims;
 
 namespace Something.AspNet.API.Services;
 
@@ -16,7 +18,8 @@ internal class IdentityService(
     IAccessTokenService accessTokenService,
     IRefreshTokenService refreshTokenService,
     ISessionsService sessionsService,
-    IValidator<RegisterRequest> registerValidator)
+    IValidator<RegisterRequest> registerValidator,
+    TimeProvider timeProvider)
     : IIdentityService
 {
     private readonly IApplicationDbContext _dbContext = dbContext;
@@ -25,6 +28,7 @@ internal class IdentityService(
     private readonly IRefreshTokenService _refreshTokenService = refreshTokenService;
     private readonly IValidator<RegisterRequest> _registerValidator = registerValidator;
     private readonly ISessionsService _sessionsService = sessionsService;
+    private readonly TimeProvider _timeProvider = timeProvider;
 
     public async Task<LoginResponse> LoginAsync(
         LoginRequest request, 
@@ -51,12 +55,49 @@ internal class IdentityService(
 
         return new LoginResponse(
             _accessTokenService.CreateToken(session),
-            _refreshTokenService.CreateToken(session));
+            _refreshTokenService.CreateToken(session),
+            session.AccessTokenExpiresAt.ToUnixTimeSeconds());
     }
 
     public async Task LogoutAsync(Guid sessionId, CancellationToken cancellationToken)
     {
         await _sessionsService.RemoveAsync(sessionId, cancellationToken);
+    }
+
+    public async Task<RefreshResponse> RefreshAsync(
+        RefreshRequest request, 
+        CancellationToken cancellationToken)
+    {
+        if (_refreshTokenService.ValidateToken(request.RefreshToken)
+                is not ClaimsPrincipal principal)
+        {
+            throw new TokenInvalidException();
+        }
+
+        Session? session = 
+            await _dbContext.Sessions.SingleOrDefaultAsync(
+                s => s.Id.Equals(principal.GetSessionId()), 
+                cancellationToken)
+            ?? throw new SessionExpiredException();
+
+        if (_timeProvider.GetUtcNow() > session.SessionExpiresAt)
+        {
+            await _sessionsService.RemoveAsync(session.Id, cancellationToken);
+
+            throw new SessionExpiredException();
+        }
+
+        if (!session.JwtId.Equals(principal.GetJwtId()))
+        {
+            throw new TokenInvalidException();
+        }
+
+        await _sessionsService.RefreshAsync(session, cancellationToken);
+
+        return new RefreshResponse(
+            _accessTokenService.CreateToken(session),
+            _refreshTokenService.CreateToken(session),
+            session.AccessTokenExpiresAt.ToUnixTimeSeconds());
     }
 
     public async Task RegisterAsync(

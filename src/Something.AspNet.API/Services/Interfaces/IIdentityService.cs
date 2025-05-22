@@ -13,6 +13,10 @@ public interface IIdentityService
         Guid sessionId,
         CancellationToken cancellationToken);
 
+    public Task<RefreshResponse> RefreshAsync(
+        RefreshRequest request,
+        CancellationToken cancellationToken);
+
     public Task RegisterAsync(
         RegisterRequest request,
         CancellationToken cancellationToken);

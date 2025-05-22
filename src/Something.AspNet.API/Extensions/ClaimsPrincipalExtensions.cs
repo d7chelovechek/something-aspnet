@@ -18,13 +18,13 @@ public static class ClaimsPrincipalExtensions
         throw new TokenInvalidException();
     }
 
-    public static DateTimeOffset GetExpiresAt(this ClaimsPrincipal principal)
+    public static Guid GetJwtId(this ClaimsPrincipal principal)
     {
-        if (principal.Claims.FirstOrDefault(c => c.Type is JwtClaimTypes.ExpiresAt)?.Value
-                is string strExpiresAt &&
-            long.TryParse(strExpiresAt, out long expiresAtTimestamp))
+        if (principal.Claims.FirstOrDefault(c => c.Type is JwtClaimTypes.JwtId)?.Value
+                is string strJwtId &&
+            Guid.TryParse(strJwtId, out Guid jwtId))
         {
-            return DateTimeOffset.FromUnixTimeSeconds(expiresAtTimestamp);
+            return jwtId;
         }
 
         throw new TokenInvalidException();

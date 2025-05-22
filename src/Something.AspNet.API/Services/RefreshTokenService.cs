@@ -3,6 +3,8 @@ using Microsoft.IdentityModel.Tokens;
 using Something.AspNet.API.Options;
 using Something.AspNet.API.Services.Interfaces;
 using Something.AspNet.Database.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 
 namespace Something.AspNet.API.Services;
@@ -32,5 +34,19 @@ internal class RefreshTokenService(
             session.TokensUpdatedAt.UtcDateTime,
             session.RefreshTokenExpiresAt.UtcDateTime,
             _validationParameters);
+    }
+
+    public ClaimsPrincipal? ValidateToken(string token)
+    {
+        try
+        {
+            var handler = new JwtSecurityTokenHandler();
+
+            return handler.ValidateToken(token, _validationParameters, out _);
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

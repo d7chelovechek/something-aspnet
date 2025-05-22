@@ -16,7 +16,7 @@ internal class GlobalExceptionHandler : IExceptionHandler
     {
         var handledException = exception switch
         {
-            TokenInvalidException => new HandledException(
+            TokenInvalidException or SessionExpiredException => new HandledException(
                 HttpStatusCode.Unauthorized, 
                 [exception.Message]),
             UserAlreadyExistsException => new HandledException(
