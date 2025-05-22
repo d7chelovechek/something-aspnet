@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
-using Something.AspNet.API.Services.Auth.Exceptions;
+using Something.AspNet.API.Exceptions;
 using System.Net;
 
 namespace Something.AspNet.API.ExceptionHandlers;
@@ -16,6 +16,9 @@ internal class GlobalExceptionHandler : IExceptionHandler
     {
         var handledException = exception switch
         {
+            TokenInvalidException => new HandledException(
+                HttpStatusCode.Unauthorized, 
+                [exception.Message]),
             UserAlreadyExistsException => new HandledException(
                 HttpStatusCode.Conflict, 
                 [exception.Message]),

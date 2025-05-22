@@ -1,8 +1,7 @@
-﻿using Something.AspNet.API.Responses;
-using Something.AspNet.Database.Models;
+﻿using Something.AspNet.Database.Models;
 using System.Security.Claims;
 
-namespace Something.AspNet.API.Services.Auth.Interfaces;
+namespace Something.AspNet.API.Services.Interfaces;
 
 public interface IAccessTokenService
 {

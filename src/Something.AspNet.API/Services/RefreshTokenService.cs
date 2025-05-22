@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Something.AspNet.API.Options;
-using Something.AspNet.API.Responses;
-using Something.AspNet.API.Services.Auth.Interfaces;
+using Something.AspNet.API.Services.Interfaces;
 using Something.AspNet.Database.Models;
 using System.Text;
 
-namespace Something.AspNet.API.Services.Auth;
+namespace Something.AspNet.API.Services;
 
 internal class RefreshTokenService(
     IOptions<JwtOptions> jwtOptions)
@@ -14,21 +13,24 @@ internal class RefreshTokenService(
 {
     private readonly TokenValidationParameters _validationParameters = new()
     {
+        ValidateLifetime = true,
         ValidateAudience = true,
         ValidateIssuer = true,
         ValidateIssuerSigningKey = true,
         ValidAudience = jwtOptions.Value.Audience,
         ValidIssuer = jwtOptions.Value.Issuer,
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(jwtOptions.Value.RefreshTokenKey))
+            Encoding.UTF8.GetBytes(jwtOptions.Value.RefreshTokenKey)),
+        ClockSkew = TimeSpan.Zero
     };
-    private readonly int _expiresInMinutes = jwtOptions.Value.RefreshTokenLifetimeInMinutes;
 
     public string CreateToken(Session session)
     {
         return CreateToken(
-            session,
-            _validationParameters,
-            _expiresInMinutes);
+            session.Id.ToString(),
+            session.JwtId.ToString(),
+            session.TokensUpdatedAt.UtcDateTime,
+            session.RefreshTokenExpiresAt.UtcDateTime,
+            _validationParameters);
     }
 }

@@ -1,27 +1,23 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Something.AspNet.API.Constants;
-using Something.AspNet.API.Options;
+using Something.AspNet.API.Exceptions;
 using Something.AspNet.API.Requests;
 using Something.AspNet.API.Responses;
-using Something.AspNet.API.Services.Auth.Exceptions;
-using Something.AspNet.API.Services.Auth.Interfaces;
+using Something.AspNet.API.Services.Interfaces;
 using Something.AspNet.Database;
 using Something.AspNet.Database.Models;
-using System.IdentityModel.Tokens.Jwt;
 
-namespace Something.AspNet.API.Services.Auth;
+namespace Something.AspNet.API.Services;
 
-internal class AuthService(
+internal class IdentityService(
     IApplicationDbContext dbContext,
     IPasswordHasher<User> passwordHasher,
     IAccessTokenService accessTokenService,
     IRefreshTokenService refreshTokenService,
     ISessionsService sessionsService,
     IValidator<RegisterRequest> registerValidator)
-    : IAuthService
+    : IIdentityService
 {
     private readonly IApplicationDbContext _dbContext = dbContext;
     private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
@@ -58,14 +54,9 @@ internal class AuthService(
             _refreshTokenService.CreateToken(session));
     }
 
-    public async Task LogoutAsync(string accessToken, CancellationToken cancellationToken)
+    public async Task LogoutAsync(Guid sessionId, CancellationToken cancellationToken)
     {
-        //var securityToken = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
-        //var claim = securityToken.Claims.Single(c => c.Type is JwtClaimTypes.SessionId);
-
-        //await _dbContext.Sessions
-        //    .Where(s => s.Id.Equals(Guid.Parse(claim.Value)))
-        //    .ExecuteDeleteAsync(cancellationToken);
+        await _sessionsService.RemoveAsync(sessionId, cancellationToken);
     }
 
     public async Task RegisterAsync(

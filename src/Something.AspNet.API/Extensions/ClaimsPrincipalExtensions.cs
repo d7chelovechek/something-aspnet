@@ -1,40 +1,32 @@
 ﻿using Something.AspNet.API.Constants;
+using Something.AspNet.API.Exceptions;
 using System.Security.Claims;
 
-namespace Something.AspNet.API.Extensions
+namespace Something.AspNet.API.Extensions;
+
+public static class ClaimsPrincipalExtensions
 {
-    public static class ClaimsPrincipalExtensions
+    public static Guid GetSessionId(this ClaimsPrincipal principal)
     {
-        public static Guid? GetSessionId(this ClaimsPrincipal principal)
+        if (principal.Claims.FirstOrDefault(c => c.Type is JwtClaimTypes.SessionId)?.Value 
+                is string strSessionId &&
+            Guid.TryParse(strSessionId, out Guid sessionId))
         {
-            if (principal.Claims.FirstOrDefault(c => c.Type is JwtClaimTypes.SessionId)?.Value 
-                    is not string strSessionId)
-            {
-                return null;
-            }
-
-            if (Guid.TryParse(strSessionId, out Guid sessionId))
-            {
-                return sessionId;
-            }
-
-            return null;
+            return sessionId;
         }
 
-        public static DateTimeOffset? GetExpiresAt(this ClaimsPrincipal principal)
+        throw new TokenInvalidException();
+    }
+
+    public static DateTimeOffset GetExpiresAt(this ClaimsPrincipal principal)
+    {
+        if (principal.Claims.FirstOrDefault(c => c.Type is JwtClaimTypes.ExpiresAt)?.Value
+                is string strExpiresAt &&
+            long.TryParse(strExpiresAt, out long expiresAtTimestamp))
         {
-            if (principal.Claims.FirstOrDefault(c => c.Type is JwtClaimTypes.ExpiresAt)?.Value
-                    is not string strExpiresAt)
-            {
-                return null;
-            }
-
-            if (long.TryParse(strExpiresAt, out long expiresAtTimestamp))
-            {
-                return DateTimeOffset.FromUnixTimeSeconds(expiresAtTimestamp);
-            }
-
-            return null;
+            return DateTimeOffset.FromUnixTimeSeconds(expiresAtTimestamp);
         }
+
+        throw new TokenInvalidException();
     }
 }

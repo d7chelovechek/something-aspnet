@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Something.AspNet.API.Requests;
 
-namespace Something.AspNet.API.Services.Auth.Validators;
+namespace Something.AspNet.API.Services.Validators;
 
 internal class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {

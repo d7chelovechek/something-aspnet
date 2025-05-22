@@ -1,16 +1,16 @@
 ﻿using Something.AspNet.API.Requests;
 using Something.AspNet.API.Responses;
 
-namespace Something.AspNet.API.Services.Auth.Interfaces;
+namespace Something.AspNet.API.Services.Interfaces;
 
-public interface IAuthService
+public interface IIdentityService
 {
     public Task<LoginResponse> LoginAsync(
         LoginRequest request,
         CancellationToken cancellationToken);
 
     public Task LogoutAsync(
-        string accessToken,
+        Guid sessionId,
         CancellationToken cancellationToken);
 
     public Task RegisterAsync(

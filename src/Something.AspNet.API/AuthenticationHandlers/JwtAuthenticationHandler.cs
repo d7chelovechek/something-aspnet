@@ -1,70 +1,71 @@
 ﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
-using Something.AspNet.API.Constants;
 using Something.AspNet.API.Extensions;
-using Something.AspNet.API.Services.Auth.Interfaces;
-using Something.AspNet.API.Services.Cache.Interfaces;
-using System.Net;
-using System.Net.Http.Headers;
+using Something.AspNet.API.Services.Interfaces;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 
-namespace Something.AspNet.API.AuthenticationHandlers
+namespace Something.AspNet.API.AuthenticationHandlers;
+
+internal class JwtAuthenticationHandler(
+    IOptionsMonitor<AuthenticationSchemeOptions> authSchemeOptions,
+    ILoggerFactory loggerFactory,
+    UrlEncoder urlEncoder,
+    IAccessTokenService accessTokenService,
+    ISessionsService sessionsService)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(
+        authSchemeOptions,
+        loggerFactory,
+        urlEncoder)
 {
-    internal class JwtAuthenticationHandler(
-        IOptionsMonitor<AuthenticationSchemeOptions> authSchemeOptions,
-        ILoggerFactory loggerFactory,
-        UrlEncoder urlEncoder,
-        IAccessTokenService accessTokenService,
-        ISessionsService sessionsService)
-        : AuthenticationHandler<AuthenticationSchemeOptions>(
-            authSchemeOptions,
-            loggerFactory,
-            urlEncoder)
+    public const string SCHEME_NAME = "JwtAuthenticationScheme";
+
+    private const string BEARER = "Bearer ";
+
+    private const string ACCESS_TOKEN_IS_INVALID = "AccessToken is invalid";
+    private const string HEADER_IS_INVALID = "Authorization header is invalid";
+
+    private readonly IAccessTokenService _accessTokenService = accessTokenService;
+    private readonly ISessionsService _sessionsService = sessionsService;
+
+    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        public const string SCHEME_NAME = "JwtAuthenticationScheme";
+        var authorization = Request.Headers.Authorization.ToString();
 
-        private const string BEARER = "Bearer ";
-
-        private readonly IAccessTokenService _accessTokenService = accessTokenService;
-        private readonly ISessionsService _sessionsService = sessionsService;
-
-        protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
+        if (string.IsNullOrWhiteSpace(authorization))
         {
-            var authorization = Request.Headers.Authorization.ToString();
+            return AuthenticateResult.Fail(HEADER_IS_INVALID);
+        }
+        
+        if (!authorization.StartsWith(BEARER))
+        {
+            return AuthenticateResult.Fail(HEADER_IS_INVALID);
+        }
 
-            if (string.IsNullOrWhiteSpace(authorization))
-            {
-                return AuthenticateResult.Fail("Authorization header not found");
-            }
-                
-            if (!authorization.StartsWith(BEARER))
-            {
-                return AuthenticateResult.Fail("Bearer prefix not found");
-            }
+        string accessToken = authorization[BEARER.Length..];
 
-            string accessToken = authorization[BEARER.Length..];
+        if (_accessTokenService.ValidateToken(accessToken) is not ClaimsPrincipal principal)
+        {
+            return AuthenticateResult.Fail(ACCESS_TOKEN_IS_INVALID);
+        }
 
-            if (_accessTokenService.ValidateToken(accessToken) is not ClaimsPrincipal principal ||
-                principal.GetSessionId() is not Guid sessionId ||
-                principal.GetExpiresAt() is not DateTimeOffset expiresAt)
-            {
-                return AuthenticateResult.Fail("AccessToken is invalid");
-            }
-
+        try
+        {
             bool isValid = await _sessionsService.ValidateAsync(
-                sessionId, 
-                expiresAt,
+                principal.GetSessionId(),
+                principal.GetExpiresAt(),
                 CancellationToken.None);
 
             if (!isValid)
             {
-                return AuthenticateResult.Fail("AccessToken is invalid");
+                return AuthenticateResult.Fail(ACCESS_TOKEN_IS_INVALID);
             }
-
-            return AuthenticateResult.Success(new AuthenticationTicket(principal, SCHEME_NAME));
         }
+        catch
+        {
+            return AuthenticateResult.Fail(ACCESS_TOKEN_IS_INVALID);
+        }
+
+        return AuthenticateResult.Success(new AuthenticationTicket(principal, SCHEME_NAME));
     }
 }

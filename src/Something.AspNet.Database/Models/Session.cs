@@ -7,7 +7,9 @@ public class Session
     public Guid UserId { get; set; }
     public Guid JwtId { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
-    public DateTimeOffset UpdatableTo { get; set; }
-    public DateTimeOffset ExpiresAt { get; set; }
+    public DateTimeOffset AccessTokenExpiresAt { get; set; }
+    public DateTimeOffset RefreshTokenExpiresAt { get; set; }
+
+    public DateTimeOffset TokensUpdatedAt { get; set; }
+    public DateTimeOffset SessionExpiresAt { get; set; }
 }

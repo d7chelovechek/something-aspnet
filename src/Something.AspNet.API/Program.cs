@@ -1,19 +1,17 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Scalar.AspNetCore;
 using Something.AspNet.API.AuthenticationHandlers;
 using Something.AspNet.API.BackgroundServices;
+using Something.AspNet.API.Cache;
+using Something.AspNet.API.Cache.Interfaces;
 using Something.AspNet.API.ExceptionHandlers;
 using Something.AspNet.API.Options;
-using Something.AspNet.API.Options.Configurations;
 using Something.AspNet.API.Requests;
-using Something.AspNet.API.Services.Auth;
-using Something.AspNet.API.Services.Auth.Interfaces;
-using Something.AspNet.API.Services.Auth.Validators;
-using Something.AspNet.API.Services.Cache;
-using Something.AspNet.API.Services.Cache.Interfaces;
+using Something.AspNet.API.Services;
+using Something.AspNet.API.Services.Interfaces;
+using Something.AspNet.API.Services.Validators;
 using Something.AspNet.Database.Extensions;
 using Something.AspNet.Database.Models;
 
@@ -36,10 +34,9 @@ internal static class Program
         builder.Services.AddAuthorization();
 
         builder.Services.AddOptions<JwtOptions>().BindConfiguration(nameof(JwtOptions));
-        builder.Services.ConfigureOptions<ConfigureJwtBearerOptions>();
 
         builder.Services.AddDatabase();
-        builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<IIdentityService, IdentityService>();
         builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
     
         builder.Services.AddOpenApi();

@@ -1,14 +1,13 @@
 ﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Something.AspNet.API.Options;
-using Something.AspNet.API.Responses;
-using Something.AspNet.API.Services.Auth.Interfaces;
+using Something.AspNet.API.Services.Interfaces;
 using Something.AspNet.Database.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Something.AspNet.API.Services.Auth;
+namespace Something.AspNet.API.Services;
 
 internal class AccessTokenService(IOptions<JwtOptions> jwtOptions)
     : JwtService, IAccessTokenService
@@ -25,11 +24,15 @@ internal class AccessTokenService(IOptions<JwtOptions> jwtOptions)
             Encoding.UTF8.GetBytes(jwtOptions.Value.AccessTokenKey)),
         ClockSkew = TimeSpan.Zero
     };
-    private readonly int _expiresInMinutes = jwtOptions.Value.AccessTokenLifetimeInMinutes;
 
     public string CreateToken(Session session)
     {
-        return CreateToken(session, _validationParameters, _expiresInMinutes);
+        return CreateToken(
+            session.Id.ToString(),
+            session.JwtId.ToString(),
+            session.TokensUpdatedAt.UtcDateTime,
+            session.AccessTokenExpiresAt.UtcDateTime,
+            _validationParameters);
     }
 
     public ClaimsPrincipal? ValidateToken(string token)
@@ -40,7 +43,7 @@ internal class AccessTokenService(IOptions<JwtOptions> jwtOptions)
             
             return handler.ValidateToken(token, _validationParameters, out _);
         }
-        catch (SecurityTokenValidationException)
+        catch
         {
             return null;
         }
