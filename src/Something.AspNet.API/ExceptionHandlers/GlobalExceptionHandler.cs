@@ -27,6 +27,9 @@ internal class GlobalExceptionHandler : IExceptionHandler
             ValidationException => new HandledException(
                 HttpStatusCode.UnprocessableEntity, 
                 ((ValidationException)exception).Errors.Select(e => e.ErrorMessage)),
+            SessionNotFoundException => new HandledException(
+                HttpStatusCode.NotFound, 
+                [exception.Message]),
             _ => new HandledException(
                 HttpStatusCode.BadRequest, 
                 [exception.Message])

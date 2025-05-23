@@ -1,6 +1,5 @@
-﻿using Something.AspNet.API.Requests;
+﻿using Something.AspNet.API.Models;
 using Something.AspNet.API.Responses;
-using Something.AspNet.Database.Models;
 
 namespace Something.AspNet.API.Services.Interfaces;
 
@@ -14,11 +13,14 @@ public interface ISessionsService
 
     public Task<FoundSessionsResponse> GetAsync(Guid userId, CancellationToken cancellationToken);
 
-    public Task UpdateAsync(Session session, CancellationToken cancellationToken);
-
     public Task RemoveAsync(Guid sessionId, CancellationToken cancellationToken);
 
+    public Task RemoveAsync(
+        Guid sessionId, 
+        SessionPrincipal principal, 
+        CancellationToken cancellationToken);
+
     public Task<RefreshedSessionResponse> RefreshAsync(
-        RefreshSessionRequest request, 
+        string refreshToken, 
         CancellationToken cancellationToken);
 }

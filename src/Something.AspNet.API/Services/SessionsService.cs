@@ -4,7 +4,6 @@ using Something.AspNet.API.Cache.Interfaces;
 using Something.AspNet.API.Exceptions;
 using Something.AspNet.API.Models;
 using Something.AspNet.API.Models.Options;
-using Something.AspNet.API.Requests;
 using Something.AspNet.API.Responses;
 using Something.AspNet.API.Services.Interfaces;
 using Something.AspNet.Database;
@@ -89,10 +88,10 @@ internal class SessionsService(
     }
 
     public async Task<RefreshedSessionResponse> RefreshAsync(
-        RefreshSessionRequest request,
+        string refreshToken,
         CancellationToken cancellationToken)
     {
-        if (_refreshTokenService.Validate(request.RefreshToken)
+        if (_refreshTokenService.Validate(refreshToken)
                 is not SessionPrincipal principal)
         {
             throw new TokenInvalidException();
@@ -140,7 +139,29 @@ internal class SessionsService(
         _sessionsCache.Remove(sessionId);
     }
 
-    public async Task UpdateAsync(Session session, CancellationToken cancellationToken)
+    public async Task RemoveAsync(
+        Guid sessionId, 
+        SessionPrincipal principal, 
+        CancellationToken cancellationToken)
+    {
+        if (sessionId.Equals(principal.SessionId))
+        {
+            throw new CannotRemoveCurrentSessionException();
+        }
+
+        var exists = await _dbContext.Sessions.AnyAsync(
+            s => s.Id.Equals(sessionId) && s.UserId.Equals(principal.UserId),
+            cancellationToken); 
+    
+        if (!exists)
+        {
+            throw new SessionNotFoundException();
+        }
+        
+        await RemoveAsync(sessionId, cancellationToken);
+    }
+
+    private async Task UpdateAsync(Session session, CancellationToken cancellationToken)
     {
         _dbContext.Sessions.Update(session);
         await _dbContext.SaveChangesAsync(cancellationToken);

@@ -1,6 +1,6 @@
 ﻿namespace Something.AspNet.API.Models.Options;
 
-internal class JwtOptions
+public class JwtOptions
 {
     public string AccessTokenKey { get; set; } = string.Empty;
     public string RefreshTokenKey { get; set; } = string.Empty;

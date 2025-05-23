@@ -50,7 +50,7 @@ public class IdentityController(
         RefreshSessionRequest request,
         CancellationToken cancellationToken)
     {
-        var response = await _sessionsService.RefreshAsync(request, cancellationToken);
+        var response = await _sessionsService.RefreshAsync(request.RefreshToken, cancellationToken);
 
         return Ok(response);
     }
@@ -62,5 +62,19 @@ public class IdentityController(
         var response = await _sessionsService.GetAsync(Session.UserId, cancellationToken);
 
         return Ok(response);
+    }
+
+    [HttpDelete("sessions")]
+    [JwtAuthorize]
+    public async Task<IActionResult> RemoveSessionAsync(
+        RemoveSessionRequest request,
+        CancellationToken cancellationToken)
+    {
+        await _sessionsService.RemoveAsync(
+            request.SessionId, 
+            Session, 
+            cancellationToken);
+
+        return Ok();
     }
 }

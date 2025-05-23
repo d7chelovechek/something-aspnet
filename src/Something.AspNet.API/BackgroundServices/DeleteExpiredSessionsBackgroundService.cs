@@ -3,7 +3,7 @@ using Something.AspNet.Database;
 
 namespace Something.AspNet.API.BackgroundServices;
 
-public class DeleteExpiredSessionsBackgroundService(
+internal class DeleteExpiredSessionsBackgroundService(
     IServiceScopeFactory scopeFactory,
     TimeProvider timeProvider)
     : BackgroundService

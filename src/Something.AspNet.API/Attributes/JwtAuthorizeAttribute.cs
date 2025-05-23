@@ -4,7 +4,7 @@ using Something.AspNet.API.AuthenticationHandlers;
 namespace Something.AspNet.API.Attributes;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
-public class JwtAuthorizeAttribute : AuthorizeAttribute
+internal class JwtAuthorizeAttribute : AuthorizeAttribute
 {
     public JwtAuthorizeAttribute()
     {

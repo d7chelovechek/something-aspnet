@@ -1,6 +1,6 @@
 ﻿namespace Something.AspNet.API.Constants;
 
-public static class JwtClaimTypes
+internal static class JwtClaimTypes
 {
     public const string Audience = "aud";
 
