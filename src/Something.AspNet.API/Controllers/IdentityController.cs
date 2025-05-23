@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Something.AspNet.API.Extensions;
+using Something.AspNet.API.Attributes;
 using Something.AspNet.API.Requests;
 using Something.AspNet.API.Services.Interfaces;
 
@@ -9,7 +9,7 @@ namespace Something.AspNet.API.Controllers;
 [Route("identity")]
 public class IdentityController(
     IUsersService userService,
-    ISessionsService sessionsService) : ControllerBase
+    ISessionsService sessionsService) : ApiControllerBase
 {
     private readonly IUsersService _userService = userService;
     private readonly ISessionsService _sessionsService = sessionsService;
@@ -40,7 +40,7 @@ public class IdentityController(
     public async Task<IActionResult> LogoutUserAsync(
         CancellationToken cancellationToken)
     {
-        await _sessionsService.RemoveAsync(User.GetSessionId(), cancellationToken);
+        await _sessionsService.RemoveAsync(Session.SessionId, cancellationToken);
 
         return Ok();
     }
@@ -51,6 +51,15 @@ public class IdentityController(
         CancellationToken cancellationToken)
     {
         var response = await _sessionsService.RefreshAsync(request, cancellationToken);
+
+        return Ok(response);
+    }
+
+    [HttpGet("sessions")]
+    [JwtAuthorize]
+    public async Task<IActionResult> GetSessionsAsync(CancellationToken cancellationToken)
+    {
+        var response = await _sessionsService.GetAsync(Session.UserId, cancellationToken);
 
         return Ok(response);
     }

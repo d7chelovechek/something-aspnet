@@ -1,10 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Something.AspNet.API.Options;
+using Something.AspNet.API.Models;
+using Something.AspNet.API.Models.Options;
 using Something.AspNet.API.Services.Interfaces;
 using Something.AspNet.Database.Models;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
 
 namespace Something.AspNet.API.Services;
@@ -26,9 +25,10 @@ internal class RefreshTokenService(
         ClockSkew = TimeSpan.Zero
     };
 
-    public string CreateToken(Session session)
+    public string Create(Session session)
     {
-        return CreateToken(
+        return Create(
+            session.UserId.ToString(),
             session.Id.ToString(),
             session.JwtId.ToString(),
             session.TokensUpdatedAt.UtcDateTime,
@@ -36,17 +36,8 @@ internal class RefreshTokenService(
             _validationParameters);
     }
 
-    public ClaimsPrincipal? ValidateToken(string token)
+    public SessionPrincipal? Validate(string token)
     {
-        try
-        {
-            var handler = new JwtSecurityTokenHandler();
-
-            return handler.ValidateToken(token, _validationParameters, out _);
-        }
-        catch
-        {
-            return null;
-        }
+        return Validate(token, _validationParameters);
     }
 }

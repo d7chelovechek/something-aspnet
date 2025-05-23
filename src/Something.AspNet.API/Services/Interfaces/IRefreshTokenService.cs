@@ -1,11 +1,11 @@
-﻿using Something.AspNet.Database.Models;
-using System.Security.Claims;
+﻿using Something.AspNet.API.Models;
+using Something.AspNet.Database.Models;
 
 namespace Something.AspNet.API.Services.Interfaces;
 
 public interface IRefreshTokenService
 {
-    public string CreateToken(Session session);
+    public string Create(Session session);
 
-    public ClaimsPrincipal? ValidateToken(string token);
+    public SessionPrincipal? Validate(string token);
 }

@@ -7,7 +7,7 @@ using Something.AspNet.API.BackgroundServices;
 using Something.AspNet.API.Cache;
 using Something.AspNet.API.Cache.Interfaces;
 using Something.AspNet.API.ExceptionHandlers;
-using Something.AspNet.API.Options;
+using Something.AspNet.API.Models.Options;
 using Something.AspNet.API.Requests;
 using Something.AspNet.API.Services;
 using Something.AspNet.API.Services.Interfaces;

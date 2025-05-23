@@ -9,4 +9,6 @@ public static class JwtClaimTypes
     public const string SessionId = "sid";
 
     public const string JwtId = "jti";
+
+    public const string UserId = "sub";
 }

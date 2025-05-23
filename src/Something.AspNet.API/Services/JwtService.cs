@@ -1,5 +1,6 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using Something.AspNet.API.Constants;
+using Something.AspNet.API.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -7,7 +8,8 @@ namespace Something.AspNet.API.Services;
 
 internal abstract class JwtService
 {
-    protected static string CreateToken(
+    protected static string Create(
+        string userId,
         string sessionId,
         string jwtId,
         DateTime notBefore,
@@ -20,6 +22,7 @@ internal abstract class JwtService
             new(JwtClaimTypes.Issuer, validationParameters.ValidIssuer),
             new(JwtClaimTypes.SessionId, sessionId),
             new(JwtClaimTypes.JwtId, jwtId),
+            new(JwtClaimTypes.UserId, userId)
         };
 
         var credentials = new SigningCredentials(
@@ -33,5 +36,24 @@ internal abstract class JwtService
            signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(securityToken);
+    }
+
+    protected static SessionPrincipal? Validate(
+        string token, 
+        TokenValidationParameters validationParameters)
+    {
+        try
+        {
+            var principal = new JwtSecurityTokenHandler().ValidateToken(
+                token, 
+                validationParameters, 
+                out _);
+
+            return new SessionPrincipal(principal);
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

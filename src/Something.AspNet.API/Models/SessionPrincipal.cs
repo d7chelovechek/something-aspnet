@@ -1,0 +1,26 @@
+﻿using Something.AspNet.API.Constants;
+using Something.AspNet.API.Exceptions;
+using System.Security.Claims;
+
+namespace Something.AspNet.API.Models;
+
+public class SessionPrincipal(ClaimsPrincipal principal) : ClaimsPrincipal(principal)
+{
+    public Guid SessionId { get; } = GetSpecifiedId(principal, JwtClaimTypes.SessionId);
+
+    public Guid UserId { get; } = GetSpecifiedId(principal, ClaimTypes.NameIdentifier);
+
+    public Guid JwtId { get; } = GetSpecifiedId(principal, JwtClaimTypes.JwtId);
+
+    public static Guid GetSpecifiedId(ClaimsPrincipal principal, string claimType)
+    {
+        if (principal.Claims.FirstOrDefault(c => c.Type.Equals(claimType))?.Value
+                is string strId &&
+            Guid.TryParse(strId, out Guid id))
+        {
+            return id;
+        }
+
+        throw new AuthorizedSessionInvalidException();
+    }
+}

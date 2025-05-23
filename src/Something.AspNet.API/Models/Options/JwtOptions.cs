@@ -1,4 +1,4 @@
-﻿namespace Something.AspNet.API.Options;
+﻿namespace Something.AspNet.API.Models.Options;
 
 internal class JwtOptions
 {

@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
-using Something.AspNet.API.Extensions;
+using Something.AspNet.API.Models;
 using Something.AspNet.API.Services.Interfaces;
-using System.Security.Claims;
 using System.Text.Encodings.Web;
 
 namespace Something.AspNet.API.AuthenticationHandlers;
@@ -44,7 +43,7 @@ internal class JwtAuthenticationHandler(
 
         string accessToken = authorization[BEARER.Length..];
 
-        if (_accessTokenService.ValidateToken(accessToken) is not ClaimsPrincipal principal)
+        if (_accessTokenService.Validate(accessToken) is not SessionPrincipal principal)
         {
             return AuthenticateResult.Fail(ACCESS_TOKEN_IS_INVALID);
         }
@@ -52,7 +51,7 @@ internal class JwtAuthenticationHandler(
         try
         {
             bool isValid = await _sessionsService.IsValidAsync(
-                principal.GetSessionId(),
+                principal.SessionId, 
                 CancellationToken.None);
 
             if (!isValid)

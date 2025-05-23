@@ -2,14 +2,13 @@
 using Microsoft.Extensions.Options;
 using Something.AspNet.API.Cache.Interfaces;
 using Something.AspNet.API.Exceptions;
-using Something.AspNet.API.Extensions;
-using Something.AspNet.API.Options;
+using Something.AspNet.API.Models;
+using Something.AspNet.API.Models.Options;
 using Something.AspNet.API.Requests;
 using Something.AspNet.API.Responses;
 using Something.AspNet.API.Services.Interfaces;
 using Something.AspNet.Database;
 using Something.AspNet.Database.Models;
-using System.Security.Claims;
 
 namespace Something.AspNet.API.Services;
 
@@ -48,9 +47,24 @@ internal class SessionsService(
         await UpdateAsync(session, cancellationToken);
 
         return new CreatedSessionResponse(
-            _accessTokenService.CreateToken(session),
-            _refreshTokenService.CreateToken(session),
+            _accessTokenService.Create(session),
+            _refreshTokenService.Create(session),
             session.AccessTokenExpiresAt.ToUnixTimeSeconds());
+    }
+
+    public async Task<FoundSessionsResponse> GetAsync(
+        Guid userId, 
+        CancellationToken cancellationToken)
+    {
+        var now = _timeProvider.GetUtcNow();
+
+        return new FoundSessionsResponse(
+            await _dbContext.Sessions
+                .Select(s =>
+                    new FoundSession(
+                        s.Id,
+                        now > s.SessionExpiresAt))
+                .ToListAsync(cancellationToken));
     }
 
     public async Task<bool> IsValidAsync(Guid sessionId, CancellationToken cancellationToken)
@@ -78,15 +92,15 @@ internal class SessionsService(
         RefreshSessionRequest request,
         CancellationToken cancellationToken)
     {
-        if (_refreshTokenService.ValidateToken(request.RefreshToken)
-                is not ClaimsPrincipal principal)
+        if (_refreshTokenService.Validate(request.RefreshToken)
+                is not SessionPrincipal principal)
         {
             throw new TokenInvalidException();
         }
 
         Session? session =
             await _dbContext.Sessions.SingleOrDefaultAsync(
-                s => s.Id.Equals(principal.GetSessionId()),
+                s => s.Id.Equals(principal.SessionId),
                 cancellationToken)
             ?? throw new SessionExpiredException();
 
@@ -97,7 +111,7 @@ internal class SessionsService(
             throw new SessionExpiredException();
         }
 
-        if (!session.JwtId.Equals(principal.GetJwtId()))
+        if (!session.JwtId.Equals(principal.JwtId))
         {
             throw new TokenInvalidException();
         }
@@ -112,8 +126,8 @@ internal class SessionsService(
         await UpdateAsync(session, cancellationToken);
 
         return new RefreshedSessionResponse(
-            _accessTokenService.CreateToken(session),
-            _refreshTokenService.CreateToken(session),
+            _accessTokenService.Create(session),
+            _refreshTokenService.Create(session),
             session.AccessTokenExpiresAt.ToUnixTimeSeconds());
     }
 

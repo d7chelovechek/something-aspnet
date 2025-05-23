@@ -12,6 +12,8 @@ public interface ISessionsService
 
     public Task<bool> IsValidAsync(Guid sessionId, CancellationToken cancellationToken);
 
+    public Task<FoundSessionsResponse> GetAsync(Guid userId, CancellationToken cancellationToken);
+
     public Task UpdateAsync(Session session, CancellationToken cancellationToken);
 
     public Task RemoveAsync(Guid sessionId, CancellationToken cancellationToken);
