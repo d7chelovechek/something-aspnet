@@ -1,4 +1,4 @@
-﻿namespace Something.AspNet.Database.Options;
+﻿namespace Something.AspNet.API.Database.Options;
 
 public class DatabaseOptions
 {

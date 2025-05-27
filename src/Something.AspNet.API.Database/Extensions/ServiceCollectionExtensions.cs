@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Something.AspNet.Database.Options;
+using Something.AspNet.API.Database.Options;
 
-namespace Something.AspNet.Database.Extensions;
+namespace Something.AspNet.API.Database.Extensions;
 
 public static class ServiceCollectionExtensions
 {

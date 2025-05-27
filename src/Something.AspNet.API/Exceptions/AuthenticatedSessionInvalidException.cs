@@ -1,4 +1,4 @@
 ﻿namespace Something.AspNet.API.Exceptions;
 
-public class AuthorizedSessionInvalidException()
+public class AuthenticatedSessionInvalidException()
     : Exception("Session is invalid.");

@@ -16,7 +16,7 @@ internal abstract class JwtService
         DateTime expires,
         TokenValidationParameters validationParameters)
     {
-        var claims = new HashSet<Claim>(4)
+        var claims = new HashSet<Claim>(5)
         {
             new(JwtClaimTypes.Audience, validationParameters.ValidAudience),
             new(JwtClaimTypes.Issuer, validationParameters.ValidIssuer),

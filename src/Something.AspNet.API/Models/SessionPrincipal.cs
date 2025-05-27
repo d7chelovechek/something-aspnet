@@ -12,7 +12,7 @@ public class SessionPrincipal(ClaimsPrincipal principal) : ClaimsPrincipal(princ
 
     public Guid JwtId { get; } = GetSpecifiedId(principal, JwtClaimTypes.JwtId);
 
-    public static Guid GetSpecifiedId(ClaimsPrincipal principal, string claimType)
+    private static Guid GetSpecifiedId(ClaimsPrincipal principal, string claimType)
     {
         if (principal.Claims.FirstOrDefault(c => c.Type.Equals(claimType))?.Value
                 is string strId &&
@@ -21,6 +21,6 @@ public class SessionPrincipal(ClaimsPrincipal principal) : ClaimsPrincipal(princ
             return id;
         }
 
-        throw new AuthorizedSessionInvalidException();
+        throw new AuthenticatedSessionInvalidException();
     }
 }

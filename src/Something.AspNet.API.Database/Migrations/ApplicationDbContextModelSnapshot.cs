@@ -3,20 +3,18 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Something.AspNet.Database;
+using Something.AspNet.API.Database;
+
 
 #nullable disable
 
 namespace Something.AspNet.Database.Migrations;
 
 [DbContext(typeof(ApplicationDbContext))]
-[Migration("20250522182210_RenamedColumnsInSessionsTable")]
-partial class RenamedColumnsInSessionsTable
+partial class ApplicationDbContextModelSnapshot : ModelSnapshot
 {
-    /// <inheritdoc />
-    protected override void BuildTargetModel(ModelBuilder modelBuilder)
+    protected override void BuildModel(ModelBuilder modelBuilder)
     {
 #pragma warning disable 612, 618
         modelBuilder
@@ -31,8 +29,14 @@ partial class RenamedColumnsInSessionsTable
                     .ValueGeneratedOnAdd()
                     .HasColumnType("uniqueidentifier");
 
+                b.Property<DateTimeOffset>("AccessTokenExpiresAt")
+                    .HasColumnType("datetimeoffset");
+
                 b.Property<Guid>("JwtId")
                     .HasColumnType("uniqueidentifier");
+
+                b.Property<DateTimeOffset>("RefreshTokenExpiresAt")
+                    .HasColumnType("datetimeoffset");
 
                 b.Property<DateTimeOffset>("SessionExpiresAt")
                     .HasColumnType("datetimeoffset");

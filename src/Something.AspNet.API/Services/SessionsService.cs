@@ -1,13 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Something.AspNet.API.Cache.Interfaces;
+using Something.AspNet.API.Database;
+using Something.AspNet.API.Database.Models;
 using Something.AspNet.API.Exceptions;
 using Something.AspNet.API.Models;
 using Something.AspNet.API.Models.Options;
 using Something.AspNet.API.Responses;
 using Something.AspNet.API.Services.Interfaces;
-using Something.AspNet.Database;
-using Something.AspNet.Database.Models;
 
 namespace Something.AspNet.API.Services;
 
@@ -51,19 +51,19 @@ internal class SessionsService(
             session.AccessTokenExpiresAt.ToUnixTimeSeconds());
     }
 
-    public async Task<FoundSessionsResponse> GetAsync(
+    public async Task<ActiveSessionsResponse> GetActiveAsync(
         Guid userId, 
         CancellationToken cancellationToken)
     {
         var now = _timeProvider.GetUtcNow();
 
-        return new FoundSessionsResponse(
+        var activeSessions = 
             await _dbContext.Sessions
-                .Select(s =>
-                    new FoundSession(
-                        s.Id,
-                        now > s.SessionExpiresAt))
-                .ToListAsync(cancellationToken));
+                .Where(s => s.UserId.Equals(userId) && now < s.SessionExpiresAt)
+                .Select(s => s.Id)
+                .ToListAsync(cancellationToken);
+
+        return new ActiveSessionsResponse(activeSessions);
     }
 
     public async Task<bool> IsValidAsync(Guid sessionId, CancellationToken cancellationToken)
@@ -130,13 +130,22 @@ internal class SessionsService(
             session.AccessTokenExpiresAt.ToUnixTimeSeconds());
     }
 
-    public async Task RemoveAsync(Guid sessionId, CancellationToken cancellationToken)
+    public Task RemoveExpiredAsync(CancellationToken cancellationToken)
     {
-        await _dbContext.Sessions
+        var now = _timeProvider.GetUtcNow();
+
+        return _dbContext.Sessions
+            .Where(s => now >= s.SessionExpiresAt)
+            .ExecuteDeleteAsync(cancellationToken);
+    }
+
+    public Task RemoveAsync(Guid sessionId, CancellationToken cancellationToken)
+    {
+        _sessionsCache.Remove(sessionId);
+
+        return _dbContext.Sessions
             .Where(s => s.Id.Equals(sessionId))
             .ExecuteDeleteAsync(cancellationToken);
-
-        _sessionsCache.Remove(sessionId);
     }
 
     public async Task RemoveAsync(
@@ -161,11 +170,11 @@ internal class SessionsService(
         await RemoveAsync(sessionId, cancellationToken);
     }
 
-    private async Task UpdateAsync(Session session, CancellationToken cancellationToken)
+    private Task<int> UpdateAsync(Session session, CancellationToken cancellationToken)
     {
-        _dbContext.Sessions.Update(session);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
         _sessionsCache.Update(session.Id, true, session.AccessTokenExpiresAt);
+
+        _dbContext.Sessions.Update(session);
+        return _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

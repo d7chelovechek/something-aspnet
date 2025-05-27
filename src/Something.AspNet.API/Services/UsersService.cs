@@ -1,11 +1,11 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Something.AspNet.API.Database;
+using Something.AspNet.API.Database.Models;
 using Something.AspNet.API.Exceptions;
 using Something.AspNet.API.Requests;
 using Something.AspNet.API.Services.Interfaces;
-using Something.AspNet.Database;
-using Something.AspNet.Database.Models;
 
 namespace Something.AspNet.API.Services;
 

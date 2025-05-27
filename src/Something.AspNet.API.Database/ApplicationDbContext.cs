@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
-using Something.AspNet.Database.Models;
-using Something.AspNet.Database.Models.Configurations;
-using Something.AspNet.Database.Options;
+using Something.AspNet.API.Database.Models;
+using Something.AspNet.API.Database.Models.Configurations;
+using Something.AspNet.API.Database.Options;
 
-namespace Something.AspNet.Database;
+namespace Something.AspNet.API.Database;
 
 internal class ApplicationDbContext : DbContext, IApplicationDbContext
 {

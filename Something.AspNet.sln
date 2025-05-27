@@ -5,7 +5,7 @@ VisualStudioVersion = 17.14.36109.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Something.AspNet.API", "src\Something.AspNet.API\Something.AspNet.API.csproj", "{08FE0C33-9E8C-40D1-9A05-BC5129BD8A83}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Something.AspNet.Database", "src\Something.AspNet.Database\Something.AspNet.Database.csproj", "{7293E69C-F548-43B9-BB73-D7B2E186BE84}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Something.AspNet.API.Database", "src\Something.AspNet.API.Database\Something.AspNet.API.Database.csproj", "{7293E69C-F548-43B9-BB73-D7B2E186BE84}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject

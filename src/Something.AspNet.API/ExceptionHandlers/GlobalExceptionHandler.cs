@@ -1,11 +1,12 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Something.AspNet.API.Exceptions;
+using Something.AspNet.API.Responses;
 using System.Net;
 
 namespace Something.AspNet.API.ExceptionHandlers;
 
-internal record HandledException(HttpStatusCode StatusCode, IEnumerable<string> Errors);
+internal record HandledException(HttpStatusCode StatusCode, ErrorsResponse ErrorsResponse);
 
 internal class GlobalExceptionHandler : IExceptionHandler
 {
@@ -18,25 +19,29 @@ internal class GlobalExceptionHandler : IExceptionHandler
         {
             TokenInvalidException or 
             SessionExpiredException or 
-            AuthorizedSessionInvalidException => new HandledException(
+            AuthenticatedSessionInvalidException => new HandledException(
                 HttpStatusCode.Unauthorized, 
-                [exception.Message]),
+                new ErrorsResponse([exception.Message])),
+
             UserAlreadyExistsException => new HandledException(
                 HttpStatusCode.Conflict, 
-                [exception.Message]),
+                new ErrorsResponse([exception.Message])),
+
             ValidationException => new HandledException(
                 HttpStatusCode.UnprocessableEntity, 
-                ((ValidationException)exception).Errors.Select(e => e.ErrorMessage)),
+                new ErrorsResponse(((ValidationException)exception).Errors.Select(e => e.ErrorMessage))),
+
             SessionNotFoundException => new HandledException(
                 HttpStatusCode.NotFound, 
-                [exception.Message]),
+                new ErrorsResponse([exception.Message])),
+
             _ => new HandledException(
                 HttpStatusCode.BadRequest, 
-                [exception.Message])
+                new ErrorsResponse([exception.Message]))
         };
 
         httpContext.Response.StatusCode = (int)handledException.StatusCode;
-        await httpContext.Response.WriteAsJsonAsync(new { handledException.Errors }, cancellationToken);
+        await httpContext.Response.WriteAsJsonAsync(handledException.ErrorsResponse, cancellationToken);
 
         return true;
     }

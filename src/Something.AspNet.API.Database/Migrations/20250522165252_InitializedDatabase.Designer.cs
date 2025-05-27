@@ -3,17 +3,21 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Something.AspNet.Database;
+using Something.AspNet.API.Database;
+
 
 #nullable disable
 
 namespace Something.AspNet.Database.Migrations;
 
 [DbContext(typeof(ApplicationDbContext))]
-partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+[Migration("20250522165252_InitializedDatabase")]
+partial class InitializedDatabase
 {
-    protected override void BuildModel(ModelBuilder modelBuilder)
+    /// <inheritdoc />
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
 #pragma warning disable 612, 618
         modelBuilder
@@ -28,19 +32,16 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                     .ValueGeneratedOnAdd()
                     .HasColumnType("uniqueidentifier");
 
-                b.Property<DateTimeOffset>("AccessTokenExpiresAt")
+                b.Property<DateTimeOffset>("CreatedAt")
+                    .HasColumnType("datetimeoffset");
+
+                b.Property<DateTimeOffset>("ExpiresAt")
                     .HasColumnType("datetimeoffset");
 
                 b.Property<Guid>("JwtId")
                     .HasColumnType("uniqueidentifier");
 
-                b.Property<DateTimeOffset>("RefreshTokenExpiresAt")
-                    .HasColumnType("datetimeoffset");
-
-                b.Property<DateTimeOffset>("SessionExpiresAt")
-                    .HasColumnType("datetimeoffset");
-
-                b.Property<DateTimeOffset>("TokensUpdatedAt")
+                b.Property<DateTimeOffset>("UpdatableTo")
                     .HasColumnType("datetimeoffset");
 
                 b.Property<Guid>("UserId")

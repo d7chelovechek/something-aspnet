@@ -1,4 +1,4 @@
-﻿namespace Something.AspNet.Database.Models;
+﻿namespace Something.AspNet.API.Database.Models;
 
 public class User
 {

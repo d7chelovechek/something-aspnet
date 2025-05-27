@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Something.AspNet.Database.Models;
+using Something.AspNet.API.Database.Models;
 
-namespace Something.AspNet.Database;
+namespace Something.AspNet.API.Database;
 
 public interface IApplicationDbContext
 {

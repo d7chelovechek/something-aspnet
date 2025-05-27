@@ -5,15 +5,16 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Something.AspNet.Database;
+using Something.AspNet.API.Database;
+
 
 #nullable disable
 
 namespace Something.AspNet.Database.Migrations;
 
 [DbContext(typeof(ApplicationDbContext))]
-[Migration("20250522165252_InitializedDatabase")]
-partial class InitializedDatabase
+[Migration("20250522182210_RenamedColumnsInSessionsTable")]
+partial class RenamedColumnsInSessionsTable
 {
     /// <inheritdoc />
     protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,16 +32,13 @@ partial class InitializedDatabase
                     .ValueGeneratedOnAdd()
                     .HasColumnType("uniqueidentifier");
 
-                b.Property<DateTimeOffset>("CreatedAt")
-                    .HasColumnType("datetimeoffset");
-
-                b.Property<DateTimeOffset>("ExpiresAt")
-                    .HasColumnType("datetimeoffset");
-
                 b.Property<Guid>("JwtId")
                     .HasColumnType("uniqueidentifier");
 
-                b.Property<DateTimeOffset>("UpdatableTo")
+                b.Property<DateTimeOffset>("SessionExpiresAt")
+                    .HasColumnType("datetimeoffset");
+
+                b.Property<DateTimeOffset>("TokensUpdatedAt")
                     .HasColumnType("datetimeoffset");
 
                 b.Property<Guid>("UserId")

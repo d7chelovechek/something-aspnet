@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Something.AspNet.API.Attributes;
 using Something.AspNet.API.Requests;
+using Something.AspNet.API.Responses;
 using Something.AspNet.API.Services.Interfaces;
+using System.Net;
 
 namespace Something.AspNet.API.Controllers;
 
@@ -15,6 +17,9 @@ public class IdentityController(
     private readonly ISessionsService _sessionsService = sessionsService;
 
     [HttpPost("register")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(ErrorsResponse), (int)HttpStatusCode.UnprocessableEntity)]
+    [ProducesResponseType(typeof(ErrorsResponse), (int)HttpStatusCode.Conflict)]
     public async Task<IActionResult> RegisterUserAsync(
         RegisterRequest request,
         CancellationToken cancellationToken)
@@ -25,6 +30,8 @@ public class IdentityController(
     }
 
     [HttpPost("login")]
+    [ProducesResponseType(typeof(CreatedSessionResponse), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(ErrorsResponse), (int)HttpStatusCode.BadRequest)]
     public async Task<IActionResult> LoginUserAsync(
         LoginRequest request,
         CancellationToken cancellationToken)
@@ -37,6 +44,7 @@ public class IdentityController(
 
     [HttpPost("logout")]
     [JwtAuthorize]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
     public async Task<IActionResult> LogoutUserAsync(
         CancellationToken cancellationToken)
     {
@@ -46,6 +54,8 @@ public class IdentityController(
     }
 
     [HttpPost("sessions")]
+    [ProducesResponseType(typeof(RefreshedSessionResponse), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(ErrorsResponse), (int)HttpStatusCode.Unauthorized)]
     public async Task<IActionResult> RefreshSessionAsync(
         RefreshSessionRequest request,
         CancellationToken cancellationToken)
@@ -57,15 +67,19 @@ public class IdentityController(
 
     [HttpGet("sessions")]
     [JwtAuthorize]
-    public async Task<IActionResult> GetSessionsAsync(CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(ActiveSessionsResponse), (int)HttpStatusCode.OK)]
+    public async Task<IActionResult> GetActiveSessionsAsync(CancellationToken cancellationToken)
     {
-        var response = await _sessionsService.GetAsync(Session.UserId, cancellationToken);
+        var response = await _sessionsService.GetActiveAsync(Session.UserId, cancellationToken);
 
         return Ok(response);
     }
 
     [HttpDelete("sessions")]
     [JwtAuthorize]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(ErrorsResponse), (int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(ErrorsResponse), (int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> RemoveSessionAsync(
         RemoveSessionRequest request,
         CancellationToken cancellationToken)

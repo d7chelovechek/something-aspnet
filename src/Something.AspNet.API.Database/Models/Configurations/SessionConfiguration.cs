@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Something.AspNet.Database.Models.Configurations;
+namespace Something.AspNet.API.Database.Models.Configurations;
 
 internal class SessionConfiguration : IEntityTypeConfiguration<Session>
 {

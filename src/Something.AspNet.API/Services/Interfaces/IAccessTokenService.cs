@@ -1,5 +1,5 @@
-﻿using Something.AspNet.API.Models;
-using Something.AspNet.Database.Models;
+﻿using Something.AspNet.API.Database.Models;
+using Something.AspNet.API.Models;
 
 namespace Something.AspNet.API.Services.Interfaces;
 
