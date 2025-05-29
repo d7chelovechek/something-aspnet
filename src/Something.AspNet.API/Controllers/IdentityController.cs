@@ -84,7 +84,7 @@ public class IdentityController(
         RemoveSessionRequest request,
         CancellationToken cancellationToken)
     {
-        await _sessionsService.RemoveAsync(
+        await _sessionsService.RemoveWithPrincipalCheckAsync(
             request.SessionId, 
             Session, 
             cancellationToken);

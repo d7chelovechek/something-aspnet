@@ -4,10 +4,12 @@ using Something.AspNet.API.Cache.Interfaces;
 using Something.AspNet.API.Database;
 using Something.AspNet.API.Database.Models;
 using Something.AspNet.API.Exceptions;
+using Something.AspNet.API.Extensions;
 using Something.AspNet.API.Models;
 using Something.AspNet.API.Models.Options;
 using Something.AspNet.API.Responses;
 using Something.AspNet.API.Services.Interfaces;
+using Something.AspNet.MessageBroker.Models;
 
 namespace Something.AspNet.API.Services;
 
@@ -27,6 +29,8 @@ internal class SessionsService(
     private readonly IAccessTokenService _accessTokenService = accessTokenService;
     private readonly IRefreshTokenService _refreshTokenService = refreshTokenService;
 
+    private const System.Data.IsolationLevel ISOLATION_LEVEL = System.Data.IsolationLevel.RepeatableRead;
+
     public async Task<CreatedSessionResponse> CreateAsync(
         Guid userId, 
         CancellationToken cancellationToken)
@@ -43,7 +47,7 @@ internal class SessionsService(
             RefreshTokenExpiresAt = now.AddMinutes(_jwtOptions.RefreshTokenLifetimeInMinutes)
         };
 
-        await UpdateAsync(session, cancellationToken);
+        await AddAsync(session, cancellationToken);
 
         return new CreatedSessionResponse(
             _accessTokenService.Create(session),
@@ -101,11 +105,11 @@ internal class SessionsService(
             await _dbContext.Sessions.SingleOrDefaultAsync(
                 s => s.Id.Equals(principal.SessionId),
                 cancellationToken)
-            ?? throw new SessionExpiredException();
+            ?? throw new SessionNotFoundException();
 
         if (_timeProvider.GetUtcNow() > session.SessionExpiresAt)
         {
-            await RemoveAsync(session.Id, cancellationToken);
+            await RemoveAsync(SessionUpdatedEventType.Expired, cancellationToken, session);
 
             throw new SessionExpiredException();
         }
@@ -130,25 +134,30 @@ internal class SessionsService(
             session.AccessTokenExpiresAt.ToUnixTimeSeconds());
     }
 
-    public Task RemoveExpiredAsync(CancellationToken cancellationToken)
+    public async Task RemoveExpiredAsync(CancellationToken cancellationToken)
     {
         var now = _timeProvider.GetUtcNow();
 
-        return _dbContext.Sessions
-            .Where(s => now >= s.SessionExpiresAt)
-            .ExecuteDeleteAsync(cancellationToken);
+        Session[] sessions = 
+            await _dbContext.Sessions
+                .Where(s => now >= s.SessionExpiresAt)
+                .ToArrayAsync(cancellationToken);
+
+        await RemoveAsync(SessionUpdatedEventType.Expired, cancellationToken, sessions);
     }
 
-    public Task RemoveAsync(Guid sessionId, CancellationToken cancellationToken)
+    public async Task RemoveAsync(Guid sessionId, CancellationToken cancellationToken)
     {
-        _sessionsCache.Remove(sessionId);
+        Session? session =
+            await _dbContext.Sessions.SingleOrDefaultAsync(
+                s => s.Id.Equals(sessionId),
+                cancellationToken)
+            ?? throw new SessionExpiredException();
 
-        return _dbContext.Sessions
-            .Where(s => s.Id.Equals(sessionId))
-            .ExecuteDeleteAsync(cancellationToken);
+        await RemoveAsync(SessionUpdatedEventType.Finished, cancellationToken, session);
     }
 
-    public async Task RemoveAsync(
+    public async Task RemoveWithPrincipalCheckAsync(
         Guid sessionId, 
         SessionPrincipal principal, 
         CancellationToken cancellationToken)
@@ -158,23 +167,71 @@ internal class SessionsService(
             throw new CannotRemoveCurrentSessionException();
         }
 
-        var exists = await _dbContext.Sessions.AnyAsync(
-            s => s.Id.Equals(sessionId) && s.UserId.Equals(principal.UserId),
-            cancellationToken); 
+        Session? session =
+            await _dbContext.Sessions.SingleOrDefaultAsync(
+                s => s.Id.Equals(sessionId) && s.UserId.Equals(principal.UserId),
+                cancellationToken)
+            ?? throw new SessionNotFoundException();
     
-        if (!exists)
-        {
-            throw new SessionNotFoundException();
-        }
-        
-        await RemoveAsync(sessionId, cancellationToken);
+        await RemoveAsync(SessionUpdatedEventType.Finished, cancellationToken, session);
     }
 
-    private Task<int> UpdateAsync(Session session, CancellationToken cancellationToken)
+    private async Task AddAsync(Session session, CancellationToken cancellationToken)
     {
+        using var transaction = 
+            await _dbContext.BeginTransactionAsync(ISOLATION_LEVEL, cancellationToken);
+
+        _dbContext.Sessions.Add(session);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        var outboxEvent =
+            session.ToOutboxEvent(_timeProvider.GetUtcNow(), SessionUpdatedEventType.Created);
+
+        _dbContext.OutboxEvents.Add(outboxEvent);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
         _sessionsCache.Update(session.Id, true, session.AccessTokenExpiresAt);
+    }
+
+    private async Task UpdateAsync(Session session, CancellationToken cancellationToken)
+    {
+        using var transaction =
+            await _dbContext.BeginTransactionAsync(ISOLATION_LEVEL, cancellationToken);
+
+        var outboxEvent =
+            session.ToOutboxEvent(_timeProvider.GetUtcNow(), SessionUpdatedEventType.Refreshed);
 
         _dbContext.Sessions.Update(session);
-        return _dbContext.SaveChangesAsync(cancellationToken);
+        _dbContext.OutboxEvents.Add(outboxEvent);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        _sessionsCache.Update(session.Id, true, session.AccessTokenExpiresAt);
+    }
+
+    private async Task RemoveAsync(
+        SessionUpdatedEventType eventType,
+        CancellationToken cancellationToken,
+        params Session[] session)
+    {
+        using var transaction =
+            await _dbContext.BeginTransactionAsync(ISOLATION_LEVEL, cancellationToken);
+
+        var now = _timeProvider.GetUtcNow();
+
+        _dbContext.Sessions.RemoveRange(session);
+        _dbContext.OutboxEvents.AddRange(session.Select(s => s.ToOutboxEvent(now, eventType)));
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        foreach (var sessionId in session.Select(s => s.Id))
+        {
+            _sessionsCache.Remove(sessionId);
+        }
     }
 }

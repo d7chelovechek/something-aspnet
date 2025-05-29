@@ -17,7 +17,7 @@ public interface ISessionsService
 
     public Task RemoveAsync(Guid sessionId, CancellationToken cancellationToken);
 
-    public Task RemoveAsync(
+    public Task RemoveWithPrincipalCheckAsync(
         Guid sessionId, 
         SessionPrincipal principal, 
         CancellationToken cancellationToken);

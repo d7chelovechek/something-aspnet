@@ -14,7 +14,7 @@ using Something.AspNet.API.Services.Validators;
 
 namespace Something.AspNet.API.Extensions;
 
-public static class ServiceCollectionExtensions
+internal static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddJwtAuth(this IServiceCollection services)
     {
