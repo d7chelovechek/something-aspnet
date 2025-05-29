@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Something.AspNet.Database\Something.AspNet.API.Database.csproj" />
+    <ProjectReference Include="..\Something.AspNet.API.Database\Something.AspNet.API.Database.csproj" />
   </ItemGroup>
 
   <ItemGroup>
