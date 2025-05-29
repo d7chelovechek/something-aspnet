@@ -1,15 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Something.AspNet.Auth.API.Exceptions;
 using Something.AspNet.Auth.API.Cache.Interfaces;
 using Something.AspNet.Auth.API.Database;
 using Something.AspNet.Auth.API.Database.Models;
+using Something.AspNet.Auth.API.Exceptions;
 using Something.AspNet.Auth.API.Extensions;
 using Something.AspNet.Auth.API.Models;
 using Something.AspNet.Auth.API.Models.Options;
 using Something.AspNet.Auth.API.Responses;
 using Something.AspNet.Auth.API.Services.Interfaces;
-using Something.AspNet.MessageBroker.Models;
+using Something.AspNet.MessageBrokers.Models;
 
 namespace Something.AspNet.Auth.API.Services;
 

@@ -1,5 +1,5 @@
-﻿using Something.AspNet.Auth.API.Exceptions;
-using Something.AspNet.Auth.API.Constants;
+﻿using Something.AspNet.Auth.API.Constants;
+using Something.AspNet.Auth.API.Exceptions;
 using System.Security.Claims;
 
 namespace Something.AspNet.Auth.API.Models;

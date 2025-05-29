@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Something.AspNet.Auth.API.Exceptions;
 using Something.AspNet.Auth.API.Database;
 using Something.AspNet.Auth.API.Database.Models;
+using Something.AspNet.Auth.API.Exceptions;
 using Something.AspNet.Auth.API.Requests;
 using Something.AspNet.Auth.API.Services.Interfaces;
 

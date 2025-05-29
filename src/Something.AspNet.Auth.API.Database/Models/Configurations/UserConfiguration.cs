@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Something.AspNet.Auth.API.Database.Models;
 
 namespace Something.AspNet.Auth.API.Database.Models.Configurations;
 

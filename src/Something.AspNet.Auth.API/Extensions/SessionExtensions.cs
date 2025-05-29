@@ -1,5 +1,5 @@
 ﻿using Something.AspNet.Auth.API.Database.Models;
-using Something.AspNet.MessageBroker.Models;
+using Something.AspNet.MessageBrokers.Models;
 using System.Text.Json;
 
 namespace Something.AspNet.Auth.API.Extensions;

@@ -1,4 +1,4 @@
-﻿namespace Something.AspNet.MessageBroker.Models;
+﻿namespace Something.AspNet.MessageBrokers.Models;
 
 public enum SessionUpdatedEventType
 {

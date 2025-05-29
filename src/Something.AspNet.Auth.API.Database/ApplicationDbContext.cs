@@ -2,8 +2,8 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Options;
-using Something.AspNet.Auth.API.Database.Models.Configurations;
 using Something.AspNet.Auth.API.Database.Models;
+using Something.AspNet.Auth.API.Database.Models.Configurations;
 using Something.AspNet.Auth.API.Database.Options;
 using System.Data;
 

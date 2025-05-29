@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using RabbitMQ.Client;
 using Something.AspNet.Auth.API.AuthenticationHandlers;
 using Something.AspNet.Auth.API.BackgroundServices;
 using Something.AspNet.Auth.API.Cache;
@@ -32,7 +33,11 @@ internal static class ServiceCollectionExtensions
     public static IServiceCollection AddBackgroundServices(this IServiceCollection services)
     {
         services.AddHostedService<DatabaseMigrationBackgroundService>();
+
         services.AddHostedService<DeleteExpiredSessionsBackgroundService>();
+
+        services.AddSingleton<IConnectionFactory, ConnectionFactory>();
+        services.AddHostedService<SendOutboxEventsBackgroundService>();
 
         return services;
     }

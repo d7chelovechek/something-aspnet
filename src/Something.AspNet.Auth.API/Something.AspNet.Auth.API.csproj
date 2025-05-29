@@ -14,12 +14,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.3.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Something.AspNet.Auth.API.Database\Something.AspNet.Auth.API.Database.csproj" />
-    <ProjectReference Include="..\Something.AspNet.MessageBroker.Models\Something.AspNet.MessageBroker.Models.csproj" />
+    <ProjectReference Include="..\Something.AspNet.MessageBrokers.Models\Something.AspNet.MessageBrokers.Models.csproj" />
   </ItemGroup>
 
   <ItemGroup>
