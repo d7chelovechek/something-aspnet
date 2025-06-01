@@ -11,6 +11,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Something.AspNet.MessageBrokers.Models", "src\Something.AspNet.MessageBrokers.Models\Something.AspNet.MessageBrokers.Models.csproj", "{CD1E2049-2F46-4ABE-AA80-6FBCDF49EA41}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Something.AspNet.Analytics.API.Database", "src\Something.AspNet.Analytics.API.Database\Something.AspNet.Analytics.API.Database.csproj", "{4A51D819-8201-4740-AFE6-C60115CE7648}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Something.AspNet.Analytics.API", "src\Something.AspNet.Analytics.API\Something.AspNet.Analytics.API.csproj", "{072B908F-3D56-4BE2-8473-DF6871C47F3C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +33,14 @@ Global
 		{CD1E2049-2F46-4ABE-AA80-6FBCDF49EA41}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD1E2049-2F46-4ABE-AA80-6FBCDF49EA41}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD1E2049-2F46-4ABE-AA80-6FBCDF49EA41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A51D819-8201-4740-AFE6-C60115CE7648}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A51D819-8201-4740-AFE6-C60115CE7648}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A51D819-8201-4740-AFE6-C60115CE7648}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A51D819-8201-4740-AFE6-C60115CE7648}.Release|Any CPU.Build.0 = Release|Any CPU
+		{072B908F-3D56-4BE2-8473-DF6871C47F3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{072B908F-3D56-4BE2-8473-DF6871C47F3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{072B908F-3D56-4BE2-8473-DF6871C47F3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{072B908F-3D56-4BE2-8473-DF6871C47F3C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -37,6 +49,8 @@ Global
 		{08FE0C33-9E8C-40D1-9A05-BC5129BD8A83} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{7293E69C-F548-43B9-BB73-D7B2E186BE84} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{CD1E2049-2F46-4ABE-AA80-6FBCDF49EA41} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{4A51D819-8201-4740-AFE6-C60115CE7648} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{072B908F-3D56-4BE2-8473-DF6871C47F3C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {49738579-AEB6-430A-90C7-34A3F674AFD9}
