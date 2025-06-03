@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Something.AspNet.Auth.API.Database;
 using Something.AspNet.Auth.API.Database.Models;
@@ -9,15 +8,11 @@ using Something.AspNet.Auth.API.Services.Interfaces;
 
 namespace Something.AspNet.Auth.API.Services;
 
-internal class UsersService(
-    IApplicationDbContext dbContext,
-    IPasswordHasher<User> passwordHasher,
-    IValidator<RegisterRequest> registerValidator)
+internal class UsersService(IApplicationDbContext dbContext, IPasswordHasher<User> passwordHasher)
     : IUsersService
 {
     private readonly IApplicationDbContext _dbContext = dbContext;
     private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
-    private readonly IValidator<RegisterRequest> _registerValidator = registerValidator;
 
     public async Task<Guid> LoginAsync(
         LoginRequest request, 
@@ -47,8 +42,6 @@ internal class UsersService(
         RegisterRequest request,
         CancellationToken cancellationToken)
     {
-        await _registerValidator.ValidateAndThrowAsync(request, cancellationToken);
-
         var existingUser = 
             await _dbContext.Users.SingleOrDefaultAsync(
                 r => r.Name.Equals(request.Name), 

@@ -44,7 +44,6 @@ internal static class ServiceCollectionExtensions
 
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
-        services.AddTransient<IValidator<RegisterRequest>, RegisterRequestValidator>();
         services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IUsersService, UsersService>();
 
@@ -61,6 +60,13 @@ internal static class ServiceCollectionExtensions
     public static IServiceCollection AddBindOptions(this IServiceCollection services)
     {
         services.AddOptions<JwtOptions>().BindConfiguration(nameof(JwtOptions));
+
+        return services;
+    }
+
+    public static IServiceCollection AddValidators(this IServiceCollection services)
+    {
+        services.AddTransient<IValidator<RegisterRequest>, RegisterRequestValidator>();
 
         return services;
     }

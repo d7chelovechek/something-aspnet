@@ -15,6 +15,7 @@ internal static class Program
             .AddJwtAuth()
             .AddBindOptions()
             .AddDatabase()
+            .AddValidators()
             .AddServices()
             .AddBackgroundServices()
             .AddExceptionHandler<GlobalExceptionHandler>()

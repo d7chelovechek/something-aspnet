@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using Something.AspNet.Auth.API.Attributes;
 using Something.AspNet.Auth.API.Requests;
 using Something.AspNet.Auth.API.Responses;
@@ -22,8 +23,11 @@ public class IdentityController(
     [ProducesResponseType(typeof(ErrorsResponse), (int)HttpStatusCode.Conflict)]
     public async Task<IActionResult> RegisterUserAsync(
         RegisterRequest request,
+        IValidator<RegisterRequest> validator,
         CancellationToken cancellationToken)
     {
+        await validator.ValidateAndThrowAsync(request, cancellationToken);
+
         await _userService.RegisterAsync(request, cancellationToken);
 
         return Created();

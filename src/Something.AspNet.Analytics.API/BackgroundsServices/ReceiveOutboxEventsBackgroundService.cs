@@ -24,7 +24,7 @@ public class ReceiveOutboxEventsBackgroundService(
     {
         try
         {
-            string queueName = nameof(SessionUpdatedEvent);
+            string queueName = SessionUpdatedEvent.QUEUE_NAME;
 
             while (!stoppingToken.IsCancellationRequested)
             {

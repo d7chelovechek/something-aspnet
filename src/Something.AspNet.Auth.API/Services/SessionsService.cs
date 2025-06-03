@@ -4,12 +4,12 @@ using Something.AspNet.Auth.API.Cache.Interfaces;
 using Something.AspNet.Auth.API.Database;
 using Something.AspNet.Auth.API.Database.Models;
 using Something.AspNet.Auth.API.Exceptions;
-using Something.AspNet.Auth.API.Extensions;
 using Something.AspNet.Auth.API.Models;
 using Something.AspNet.Auth.API.Models.Options;
 using Something.AspNet.Auth.API.Responses;
 using Something.AspNet.Auth.API.Services.Interfaces;
 using Something.AspNet.MessageBrokers.Models;
+using System.Text.Json;
 
 namespace Something.AspNet.Auth.API.Services;
 
@@ -186,7 +186,7 @@ internal class SessionsService(
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         var outboxEvent =
-            session.ToOutboxEvent(_timeProvider.GetUtcNow(), SessionUpdatedEventType.Created);
+            GetOutboxEvent(session, _timeProvider.GetUtcNow(), SessionUpdatedEventType.Created);
 
         _dbContext.OutboxEvents.Add(outboxEvent);
 
@@ -202,7 +202,7 @@ internal class SessionsService(
             await _dbContext.BeginTransactionAsync(ISOLATION_LEVEL, cancellationToken);
 
         var outboxEvent =
-            session.ToOutboxEvent(_timeProvider.GetUtcNow(), SessionUpdatedEventType.Refreshed);
+            GetOutboxEvent(session, _timeProvider.GetUtcNow(), SessionUpdatedEventType.Refreshed);
 
         _dbContext.Sessions.Update(session);
         _dbContext.OutboxEvents.Add(outboxEvent);
@@ -216,22 +216,43 @@ internal class SessionsService(
     private async Task RemoveAsync(
         SessionUpdatedEventType eventType,
         CancellationToken cancellationToken,
-        params Session[] session)
+        params Session[] sessions)
     {
         using var transaction =
             await _dbContext.BeginTransactionAsync(ISOLATION_LEVEL, cancellationToken);
 
         var now = _timeProvider.GetUtcNow();
 
-        _dbContext.Sessions.RemoveRange(session);
-        _dbContext.OutboxEvents.AddRange(session.Select(s => s.ToOutboxEvent(now, eventType)));
+        _dbContext.Sessions.RemoveRange(sessions);
+        _dbContext.OutboxEvents.AddRange(sessions.Select(s => GetOutboxEvent(s, now, eventType)));
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
-        foreach (var sessionId in session.Select(s => s.Id))
+        foreach (var sessionId in sessions.Select(s => s.Id))
         {
             _sessionsCache.Remove(sessionId);
         }
+    }
+
+    private static OutboxEvent GetOutboxEvent(
+        Session session,
+        DateTimeOffset now,
+        SessionUpdatedEventType eventType)
+    {
+        var sessionPayload = new SessionUpdatedEvent()
+        {
+            SessionId = session.Id,
+            UserId = session.UserId,
+            EventType = eventType,
+            UpdatedAt = now
+        };
+
+        return new OutboxEvent()
+        {
+            Payload = JsonSerializer.Serialize(sessionPayload),
+            Sent = false,
+            CreatedAt = now
+        };
     }
 }
